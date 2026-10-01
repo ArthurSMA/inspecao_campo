@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:inpecao_campo/assets/colors/colors.dart';
+
+import 'package:inpecao_campo/core/utils/colors.dart';
 
 import 'custom_input_field.dart';
 

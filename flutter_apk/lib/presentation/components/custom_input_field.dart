@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../assets/colors/colors.dart';
+import 'package:inpecao_campo/core/utils/colors.dart';
 
 class CustomInputField extends StatelessWidget {
   final TextEditingController controller;
