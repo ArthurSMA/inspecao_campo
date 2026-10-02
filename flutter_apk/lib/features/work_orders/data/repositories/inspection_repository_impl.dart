@@ -49,8 +49,12 @@ class InspectionRepositoryImpl implements InspectionRepository {
 
   @override
   Future<void> syncPendingInspections() async {
-    final pendingList = await database.getInspections(status: Inspection.statusPending);
-    final failedList = await database.getInspections(status: Inspection.statusFailed);
+    final pendingList = await database.getInspections(
+      status: Inspection.statusPending,
+    );
+    final failedList = await database.getInspections(
+      status: Inspection.statusFailed,
+    );
     final items = [...pendingList, ...failedList];
 
     for (final inspection in items) {

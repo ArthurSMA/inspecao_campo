@@ -79,9 +79,9 @@ class AppDatabase extends _$AppDatabase {
   );
 
   Future<List<domain.WorkOrder>> getWorkOrders() async {
-    final rows = await (select(workOrders)
-          ..orderBy([(row) => OrderingTerm.desc(row.updatedAt)]))
-        .get();
+    final rows = await (select(
+      workOrders,
+    )..orderBy([(row) => OrderingTerm.desc(row.updatedAt)])).get();
     return rows.map((row) => row.toDomain()).toList();
   }
 
@@ -93,9 +93,7 @@ class AppDatabase extends _$AppDatabase {
     final normalizedQuery = query.trim().toLowerCase();
 
     final queryBuilder = select(workOrders)
-      ..orderBy([
-        (row) => OrderingTerm.desc(row.updatedAt),
-      ]);
+      ..orderBy([(row) => OrderingTerm.desc(row.updatedAt)]);
 
     if (normalizedStatus != 'all' && normalizedStatus.isNotEmpty) {
       queryBuilder.where((row) => row.status.equals(normalizedStatus));
@@ -126,7 +124,9 @@ class AppDatabase extends _$AppDatabase {
     });
   }
 
-  Future<List<domain_inspection.Inspection>> getInspections({String status = 'all'}) async {
+  Future<List<domain_inspection.Inspection>> getInspections({
+    String status = 'all',
+  }) async {
     final query = select(inspections)
       ..orderBy([(row) => OrderingTerm.desc(row.createdAt)]);
 
@@ -138,7 +138,9 @@ class AppDatabase extends _$AppDatabase {
     return rows.map((row) => row.toDomain()).toList();
   }
 
-  Stream<List<domain_inspection.Inspection>> watchInspections({String status = 'all'}) {
+  Stream<List<domain_inspection.Inspection>> watchInspections({
+    String status = 'all',
+  }) {
     final query = select(inspections)
       ..orderBy([(row) => OrderingTerm.desc(row.createdAt)]);
 
@@ -146,13 +148,18 @@ class AppDatabase extends _$AppDatabase {
       query.where((row) => row.status.equals(status));
     }
 
-    return query.watch().map((rows) => rows.map((row) => row.toDomain()).toList());
+    return query.watch().map(
+      (rows) => rows.map((row) => row.toDomain()).toList(),
+    );
   }
 
-  Future<domain_inspection.Inspection?> getInspectionByClientId(String clientId) async {
-    final row = await (select(inspections)
-          ..where((inspection) => inspection.clientId.equals(clientId)))
-        .getSingleOrNull();
+  Future<domain_inspection.Inspection?> getInspectionByClientId(
+    String clientId,
+  ) async {
+    final row =
+        await (select(inspections)
+              ..where((inspection) => inspection.clientId.equals(clientId)))
+            .getSingleOrNull();
     return row?.toDomain();
   }
 
@@ -177,9 +184,9 @@ class AppDatabase extends _$AppDatabase {
       photoUrl: Value(photoUrl),
     );
 
-    await (update(inspections)
-          ..where((row) => row.clientId.equals(clientId)))
-        .write(companion);
+    await (update(
+      inspections,
+    )..where((row) => row.clientId.equals(clientId))).write(companion);
   }
 }
 

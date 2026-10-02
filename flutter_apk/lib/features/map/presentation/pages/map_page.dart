@@ -20,6 +20,10 @@ import 'package:inpecao_campo/features/work_orders/presentation/bloc/work_orders
 import 'package:inpecao_campo/features/work_orders/presentation/pages/work_orders_page.dart';
 
 import '../../utils/map_work_order_utils.dart';
+import '../widgets/map_priority_filter.dart';
+import '../widgets/map_work_order_details_sheet.dart';
+import '../widgets/map_work_order_dialog.dart';
+import '../widgets/work_orders_map_view.dart';
 
 class MapPage extends StatefulWidget {
   const MapPage({super.key});
@@ -188,21 +192,9 @@ class _MapPageState extends State<MapPage> {
         .toList(growable: false);
   }
 
-  Color _priorityColor(String priority) {
-    return switch (priority.toLowerCase()) {
-      'high' => AppColors.danger,
-      'medium' => AppColors.warning,
-      _ => AppColors.success,
-    };
-  }
-
   void _showMessage(String message) {
     ScaffoldMessenger.of(context)
         .showSnackBar(SnackBar(content: Text(message)));
-  }
-
-  void _selectOrder(WorkOrder order) {
-    _showWorkOrderDetails(order);
   }
 
   void _showWorkOrderDetails(WorkOrder order) {
@@ -213,63 +205,13 @@ class _MapPageState extends State<MapPage> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
       ),
-      builder: (sheetContext) => SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                order.code,
-                style: const TextStyle(
-                  color: AppColors.primary,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                order.title,
-                style: const TextStyle(
-                  color: AppColors.darkText,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                order.address,
-                style: const TextStyle(color: AppColors.bodyText, fontSize: 13),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                'Lat ${order.latitude.toStringAsFixed(6)} • '
-                'Long ${order.longitude.toStringAsFixed(6)}',
-                style: const TextStyle(color: AppColors.muted, fontSize: 12),
-              ),
-              Align(
-                alignment: Alignment.centerRight,
-                child: TextButton.icon(
-                  onPressed: () => _copyCoordinates(sheetContext, order),
-                  icon: const Icon(Icons.copy_rounded),
-                  label: const Text('Copiar coordenadas'),
-                ),
-              ),
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton.icon(
-                  onPressed: () {
-                    Navigator.pop(sheetContext);
-                    unawaited(_drawRoute(order));
-                  },
-                  icon: const Icon(Icons.alt_route_rounded),
-                  label: const Text('Traçar Rota'),
-                ),
-              ),
-            ],
-          ),
-        ),
+      builder: (sheetContext) => MapWorkOrderDetailsSheet(
+        workOrder: order,
+        onCopyCoordinates: () => _copyCoordinates(sheetContext, order),
+        onRouteRequested: () {
+          Navigator.pop(sheetContext);
+          unawaited(_drawRoute(order));
+        },
       ),
     );
   }
@@ -324,90 +266,7 @@ class _MapPageState extends State<MapPage> {
   }
 
   Future<void> _createWorkOrder(LatLng location) async {
-    final titleController = TextEditingController();
-    final notesController = TextEditingController();
-    var priority = 'medium';
-
-    final details =
-        await showDialog<({String title, String? notes, String priority})>(
-          context: context,
-          builder: (dialogContext) => StatefulBuilder(
-            builder: (context, setDialogState) => AlertDialog(
-              title: const Text('Nova ordem de serviço'),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    TextField(
-                      controller: titleController,
-                      autofocus: true,
-                      textCapitalization: TextCapitalization.sentences,
-                      decoration: const InputDecoration(labelText: 'Título'),
-                    ),
-                    const SizedBox(height: 12),
-                    DropdownButtonFormField<String>(
-                      initialValue: priority,
-                      decoration: const InputDecoration(
-                        labelText: 'Prioridade',
-                      ),
-                      items: const [
-                        DropdownMenuItem(value: 'high', child: Text('Alta')),
-                        DropdownMenuItem(value: 'medium', child: Text('Média')),
-                        DropdownMenuItem(value: 'low', child: Text('Baixa')),
-                      ],
-                      onChanged: (value) {
-                        if (value != null) {
-                          setDialogState(() => priority = value);
-                        }
-                      },
-                    ),
-                    TextField(
-                      controller: notesController,
-                      textCapitalization: TextCapitalization.sentences,
-                      decoration: const InputDecoration(
-                        labelText: 'Observações (opcional)',
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      '${location.latitude.toStringAsFixed(6)}, '
-                      '${location.longitude.toStringAsFixed(6)}',
-                      style: const TextStyle(
-                        color: AppColors.muted,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(dialogContext),
-                  child: const Text('Cancelar'),
-                ),
-                FilledButton(
-                  onPressed: () {
-                    final title = titleController.text.trim();
-                    if (title.isEmpty) {
-                      return;
-                    }
-                    Navigator.pop(dialogContext, (
-                      title: title,
-                      notes: notesController.text.trim().isEmpty
-                          ? null
-                          : notesController.text.trim(),
-                      priority: priority,
-                    ));
-                  },
-                  child: const Text('Salvar'),
-                ),
-              ],
-            ),
-          ),
-        );
-
-    titleController.dispose();
-    notesController.dispose();
+    final details = await MapWorkOrderDialog.show(context, location);
     if (details == null || !mounted) {
       return;
     }
@@ -502,18 +361,11 @@ class _MapPageState extends State<MapPage> {
                   ),
                 ),
               ),
-              SizedBox(
-                height: 44,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  children: [
-                    _priorityChip('Todas', 'all'),
-                    _priorityChip('Alta', 'high'),
-                    _priorityChip('Média', 'medium'),
-                    _priorityChip('Baixa', 'low'),
-                  ],
-                ),
+              MapPriorityFilter(
+                selectedPriority: _priorityFilter,
+                onPrioritySelected: (priority) {
+                  setState(() => _priorityFilter = priority);
+                },
               ),
               if (isAdmin)
                 const Padding(
@@ -538,148 +390,25 @@ class _MapPageState extends State<MapPage> {
                             origin: location,
                           );
 
-                    return Stack(
-                      children: [
-                        FlutterMap(
-                          mapController: _mapController,
-                          options: MapOptions(
-                            initialCenter: MapPage.joaoPessoaCenter,
-                            initialZoom: 12,
-                            onMapReady: _onMapReady,
-                            onTap: isAdmin
-                                ? (_, point) => _createWorkOrder(point)
-                                : null,
-                          ),
-                          children: [
-                            TileLayer(
-                              urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                              userAgentPackageName:
-                                  'com.orbytis.inspecao_campo',
-                            ),
-                            RichAttributionWidget(
-                              attributions: const [
-                                TextSourceAttribution(
-                                  'OpenStreetMap contributors',
-                                ),
-                              ],
-                            ),
-                            if (_routePoints.length == 2)
-                              PolylineLayer(
-                                polylines: [
-                                  Polyline(
-                                    points: _routePoints,
-                                    color: AppColors.primary,
-                                    strokeWidth: 4,
-                                  ),
-                                ],
-                              ),
-                            MarkerLayer(
-                              markers: [
-                                for (final order in orders)
-                                  Marker(
-                                    point: LatLng(
-                                      order.latitude,
-                                      order.longitude,
-                                    ),
-                                    width: 44,
-                                    height: 44,
-                                    child: IconButton(
-                                      onPressed: () => _selectOrder(order),
-                                      padding: EdgeInsets.zero,
-                                      icon: Icon(
-                                        Icons.location_on_rounded,
-                                        color: _priorityColor(order.priority),
-                                        size: 38,
-                                      ),
-                                    ),
-                                  ),
-                                if (location != null)
-                                  Marker(
-                                    point: location,
-                                    width: 36,
-                                    height: 36,
-                                    child: const Icon(
-                                      Icons.my_location_rounded,
-                                      color: AppColors.primary,
-                                      size: 28,
-                                    ),
-                                  ),
-                              ],
-                            ),
-                          ],
-                        ),
-                        Positioned(
-                          top: 12,
-                          right: 12,
-                          child: Material(
-                            elevation: 4,
-                            color: Colors.white,
-                            shape: const CircleBorder(),
-                            child: IconButton(
-                              tooltip: 'Minha localização',
-                              onPressed: _isLoadingLocation
-                                  ? null
-                                  : () => _loadCurrentLocation(
-                                      showFeedback: true,
-                                    ),
-                              icon: _isLoadingLocation
-                                  ? const SizedBox(
-                                      width: 20,
-                                      height: 20,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                      ),
-                                    )
-                                  : const Icon(
-                                      Icons.my_location_rounded,
-                                      color: AppColors.primary,
-                                    ),
-                            ),
-                          ),
-                        ),
-                        if (nearest != null)
-                          Positioned(
-                            left: 12,
-                            right: 12,
-                            bottom: 48,
-                            child: Card(
-                              child: ListTile(
-                                leading: Icon(
-                                  Icons.near_me_rounded,
-                                  color: _priorityColor(nearest.priority),
-                                ),
-                                title: Text('Mais próxima: ${nearest.code}'),
-                                subtitle: Text(nearest.title),
-                                trailing: IconButton(
-                                  tooltip: 'Traçar rota',
-                                  onPressed: () => _drawRoute(nearest),
-                                  icon: const Icon(Icons.alt_route_rounded),
-                                ),
-                                onTap: () => _selectOrder(nearest),
-                              ),
-                            ),
-                          ),
-                        if (_routeDistance != null)
-                          Positioned(
-                            top: 68,
-                            left: 12,
-                            right: 64,
-                            child: Card(
-                              child: Padding(
-                                padding: const EdgeInsets.all(12),
-                                child: Text(
-                                  'Rota direta: $_routeDistance • '
-                                  '$_routeDuration a 30 km/h',
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        if (state is WorkOrdersLoadingState)
-                          const Center(child: CircularProgressIndicator()),
-                      ],
+                    return WorkOrdersMapView(
+                      mapController: _mapController,
+                      initialCenter: MapPage.joaoPessoaCenter,
+                      orders: orders,
+                      nearestOrder: nearest,
+                      userLocation: location,
+                      routePoints: _routePoints,
+                      routeDistance: _routeDistance,
+                      routeDuration: _routeDuration,
+                      isLoadingLocation: _isLoadingLocation,
+                      isLoadingOrders: state is WorkOrdersLoadingState,
+                      isAdmin: isAdmin,
+                      onMapReady: _onMapReady,
+                      onOrderSelected: _showWorkOrderDetails,
+                      onCreateWorkOrder: _createWorkOrder,
+                      onRouteRequested: _drawRoute,
+                      onLocationRequested: () {
+                        _loadCurrentLocation(showFeedback: true);
+                      },
                     );
                   },
                 ),
@@ -691,26 +420,6 @@ class _MapPageState extends State<MapPage> {
           selectedIndex: 1,
           onDestinationSelected: _handleNavigation,
         ),
-      ),
-    );
-  }
-
-  Widget _priorityChip(String label, String value) {
-    final selected = _priorityFilter == value;
-    return Padding(
-      padding: const EdgeInsets.only(right: 8),
-      child: ChoiceChip(
-        label: Text(label),
-        selected: selected,
-        showCheckmark: false,
-        selectedColor: AppColors.primary,
-        backgroundColor: Colors.white,
-        labelStyle: TextStyle(
-          color: selected ? Colors.white : AppColors.darkText,
-          fontWeight: FontWeight.w700,
-          fontSize: 12,
-        ),
-        onSelected: (_) => setState(() => _priorityFilter = value),
       ),
     );
   }

@@ -17,7 +17,9 @@ class InspectionRemoteDataSourceImpl implements InspectionRemoteDataSource {
   Future<List<InspectionModel>> fetchInspections() async {
     final response = await _dio.get('/inspections');
     final data = response.data as List<dynamic>;
-    return data.map((json) => InspectionModel.fromJson(json as Map<String, dynamic>)).toList();
+    return data
+        .map((json) => InspectionModel.fromJson(json as Map<String, dynamic>))
+        .toList();
   }
 
   @override
@@ -43,7 +45,9 @@ class InspectionRemoteDataSourceImpl implements InspectionRemoteDataSource {
       options: Options(contentType: 'multipart/form-data'),
     );
 
-    if (response.statusCode == null || response.statusCode! < 200 || response.statusCode! >= 300) {
+    if (response.statusCode == null ||
+        response.statusCode! < 200 ||
+        response.statusCode! >= 300) {
       throw DioException(
         requestOptions: response.requestOptions,
         response: response,

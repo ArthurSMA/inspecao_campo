@@ -5,10 +5,7 @@ class GeoUtils {
   static const double defaultLongitude = -34.8816;
   static const double defaultProximityThresholdMeters = 200;
 
-  static double safeDouble(
-    dynamic value, {
-    double fallback = defaultLatitude,
-  }) {
+  static double safeDouble(dynamic value, {double fallback = defaultLatitude}) {
     if (value == null) {
       return fallback;
     }

@@ -33,10 +33,13 @@ class InspectionModel extends Inspection {
       condition: json['condition']?.toString(),
       latitude: latitude is num ? latitude.toDouble() : 0,
       longitude: longitude is num ? longitude.toDouble() : 0,
-      capturedAt: DateTime.tryParse(capturedAt?.toString() ?? '') ?? DateTime.now(),
+      capturedAt:
+          DateTime.tryParse(capturedAt?.toString() ?? '') ?? DateTime.now(),
       createdAt: DateTime.now(),
       photoUrl: json['photoUrl']?.toString(),
-      syncedAt: syncedAt == null ? null : DateTime.tryParse(syncedAt.toString()),
+      syncedAt: syncedAt == null
+          ? null
+          : DateTime.tryParse(syncedAt.toString()),
       status: Inspection.statusSynced,
       serverId: (json['id'] ?? '').toString(),
     );

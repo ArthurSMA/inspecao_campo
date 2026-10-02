@@ -23,7 +23,8 @@ class InspectionLocationCapture {
   final InspectionLocationStatus status;
   final String message;
 
-  String get coordinateSummary => GeoUtils.formatCoordinate(latitude, longitude);
+  String get coordinateSummary =>
+      GeoUtils.formatCoordinate(latitude, longitude);
 }
 
 class InspectionLocationService {
@@ -53,8 +54,7 @@ class InspectionLocationService {
         ),
         isNearTarget: false,
         status: InspectionLocationStatus.permissionDenied,
-        message:
-            'Permissão de localização negada. Ative o GPS para registrar a inspeção.',
+        message: 'Permissão de localização negada. Ative o GPS para registrar a inspeção.',
       );
     }
 
@@ -100,8 +100,7 @@ class InspectionLocationService {
         ),
         isNearTarget: false,
         status: InspectionLocationStatus.unavailable,
-        message:
-            'Não foi possível capturar a localização. Use o ponto padrão de João Pessoa/PB.',
+        message: 'Não foi possível capturar a localização. Use o ponto padrão de João Pessoa/PB.',
       );
     }
   }

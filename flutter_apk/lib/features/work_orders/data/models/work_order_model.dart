@@ -35,9 +35,11 @@ class WorkOrderModel extends WorkOrder {
         json['longitude'],
         fallback: GeoUtils.defaultLongitude,
       ),
-      scheduledAt: DateTime.tryParse(json['scheduledAt'] as String? ?? '') ??
+      scheduledAt:
+          DateTime.tryParse(json['scheduledAt'] as String? ?? '') ??
           DateTime.now(),
-      updatedAt: DateTime.tryParse(json['updatedAt'] as String? ?? '') ??
+      updatedAt:
+          DateTime.tryParse(json['updatedAt'] as String? ?? '') ??
           DateTime.now(),
       notes: json['notes'] as String?,
     );
