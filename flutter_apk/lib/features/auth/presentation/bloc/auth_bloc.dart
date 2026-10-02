@@ -26,7 +26,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     });
 
     on<LogoutEvent>((event, emit) async {
-      await secureStorage.delete(key: 'access_token');
+      try {
+        await remoteDataSource.logout();
+      } finally {
+        await secureStorage.delete(key: 'access_token');
+      }
       emit(AuthInitialState());
     });
   }

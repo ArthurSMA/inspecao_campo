@@ -1,103 +1,148 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
 import 'package:inpecao_campo/core/network/dio_client.dart';
-import 'package:inpecao_campo/features/work_orders/data/work_orders_repository.dart';
+import 'package:inpecao_campo/core/utils/colors.dart';
+import 'package:inpecao_campo/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:inpecao_campo/features/auth/presentation/bloc/auth_event.dart';
+import 'package:inpecao_campo/features/auth/presentation/bloc/auth_state.dart';
+import 'package:inpecao_campo/features/auth/presentation/pages/login_page.dart';
+import 'package:inpecao_campo/features/work_orders/data/database/work_orders_database.dart';
 import 'package:inpecao_campo/features/work_orders/data/datasources/work_orders_remote_data_source.dart';
+import 'package:inpecao_campo/features/work_orders/data/repositories/work_orders_repository_impl.dart';
+import 'package:inpecao_campo/features/work_orders/domain/entities/work_order.dart' as domain;
 import 'package:inpecao_campo/features/work_orders/domain/usecases/get_work_orders.dart';
 
 import '../bloc/work_orders_bloc.dart';
 import '../bloc/work_orders_event.dart';
 import '../bloc/work_orders_state.dart';
+import '../widgets/database_status_banner.dart';
+import '../widgets/work_order_card.dart';
+import '../widgets/work_orders_filter_chips.dart';
+import '../widgets/work_orders_footer.dart';
+import '../widgets/work_orders_header.dart';
+import '../widgets/work_orders_search_bar.dart';
 
-class WorkOrdersPage extends StatelessWidget {
+class WorkOrdersPage extends StatefulWidget {
   const WorkOrdersPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) =>
-          WorkOrdersBloc(
-            GetWorkOrdersUseCase(
-              WorkOrdersRepositoryImpl(
-                remoteDataSource: WorkOrdersRemoteDataSourceImpl(
-                  DioClient().instance,
-                ),
-              ),
-            ),
-          )..add(FetchWorkOrdersEvent()),
-      child: Scaffold(
-        appBar: AppBar(title: const Text('Ordens de Serviço')),
-        body: BlocBuilder<WorkOrdersBloc, WorkOrdersState>(
-          builder: (context, state) {
-            if (state is WorkOrdersLoadingState) {
-              return const Center(child: CircularProgressIndicator());
-            }
-
-            if (state is WorkOrdersLoadedState) {
-              if (state.orders.isEmpty) {
-                return const Center(child: Text('Nenhuma ordem de serviço.'));
-              }
-
-              return ListView.builder(
-                itemCount: state.orders.length,
-                itemBuilder: (context, index) {
-                  final order = state.orders[index];
-                  return ListTile(
-                    leading: CircleAvatar(child: Text(order.id)),
-                    title: Text(order.title),
-                    subtitle: Text(order.description),
-                    trailing: Chip(label: Text(order.status)),
-                  );
-                },
-              );
-            }
-
-            if (state is WorkOrdersErrorState) {
-              return Center(child: Text(state.message));
-            }
-
-            return const SizedBox.shrink();
-          },
-        ),
-      ),
-    );
-  }
+  State<WorkOrdersPage> createState() => _WorkOrdersPageState();
 }
 
-class HeaderWidget extends StatelessWidget {
-  const HeaderWidget({super.key});
+class _WorkOrdersPageState extends State<WorkOrdersPage> {
+  final TextEditingController _searchController = TextEditingController();
+  String _selectedFilter = 'all';
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _handleLogout() {
+    context.read<AuthBloc>().add(LogoutEvent());
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(
-              Icons.menu_rounded,
-              size: 32,
-              color: Colors.black87,
-            ),
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(),
-          ),
-          const Expanded(
-            child: Text(
-              'Início',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF004B93),
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<AuthBloc, AuthState>(
+          listener: (context, state) {
+            if (state is AuthInitialState) {
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(builder: (_) => const LoginPage()),
+                (route) => false,
+              );
+            }
+          },
+        ),
+      ],
+      child: BlocProvider(
+        create: (context) => WorkOrdersBloc(
+          GetWorkOrdersUseCase(
+            WorkOrdersRepositoryImpl(
+              remoteDataSource: WorkOrdersRemoteDataSourceImpl(
+                DioClient().instance,
               ),
+              database: AppDatabase(),
             ),
           ),
-          const Icon(Icons.person_rounded, size: 32),
-        ],
+        )..add(FetchWorkOrdersEvent()),
+        child: Scaffold(
+          backgroundColor: AppColors.bgLight,
+          body: SafeArea(
+            child: BlocBuilder<WorkOrdersBloc, WorkOrdersState>(
+              buildWhen: (previous, current) => previous != current,
+              builder: (context, state) {
+                final loadedOrders = state is WorkOrdersLoadedState
+                    ? state.orders
+                    : const <domain.WorkOrder>[];
+
+                return Column(
+                  children: [
+                    WorkOrdersHeader(
+                      userName: 'Ana Técnica',
+                      onLogout: _handleLogout,
+                      onSync: () => context.read<WorkOrdersBloc>().add(
+                        FetchWorkOrdersEvent(),
+                      ),
+                    ),
+                    WorkOrdersSearchBar(
+                      controller: _searchController,
+                      onChanged: (query) {
+                        context.read<WorkOrdersBloc>().add(SearchWorkOrdersEvent(query));
+                      },
+                      onClear: () {
+                        _searchController.clear();
+                        context.read<WorkOrdersBloc>().add(SearchWorkOrdersEvent(''));
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    WorkOrdersFilterChips(
+                      selectedFilter: _selectedFilter,
+                      onFilterSelected: (filter) {
+                        setState(() => _selectedFilter = filter);
+                        context.read<WorkOrdersBloc>().add(FilterByStatusEvent(filter));
+                      },
+                    ),
+                    const DatabaseStatusBanner(),
+                    Expanded(
+                      child: RefreshIndicator(
+                        onRefresh: () async {
+                          context.read<WorkOrdersBloc>().add(FetchWorkOrdersEvent());
+                        },
+                        child: state is WorkOrdersLoadingState
+                            ? const Center(child: CircularProgressIndicator())
+                            : loadedOrders.isEmpty
+                                ? const Center(
+                                    child: Text(
+                                      'Nenhuma ordem de serviço encontrada.',
+                                      style: TextStyle(color: AppColors.muted),
+                                    ),
+                                  )
+                                : ListView.builder(
+                                    padding: const EdgeInsets.only(bottom: 16),
+                                    itemCount: loadedOrders.length,
+                                    itemExtent: 290,
+                                    itemBuilder: (context, index) {
+                                      final order = loadedOrders[index];
+                                      return WorkOrderCard(order: order);
+                                    },
+                                  ),
+                      ),
+                    ),
+                    WorkOrdersFooter(
+                      visibleCount: loadedOrders.length,
+                      totalCount: loadedOrders.length,
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+        ),
       ),
     );
   }

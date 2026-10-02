@@ -24,7 +24,6 @@ class AuthInterceptor extends Interceptor {
 
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) async {
-    // Tratar erro 401 (Não autorizado ou token expirado)
     if (err.response?.statusCode == 401) {
       await _secureStorage.delete(key: 'access_token');
 
