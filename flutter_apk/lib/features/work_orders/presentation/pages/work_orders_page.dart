@@ -2,15 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:inpecao_campo/core/network/dio_client.dart';
+import 'package:inpecao_campo/core/presentation/widgets/app_header.dart';
+import 'package:inpecao_campo/core/presentation/widgets/bottom_nav_bar.dart';
 import 'package:inpecao_campo/core/utils/colors.dart';
 import 'package:inpecao_campo/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:inpecao_campo/features/auth/presentation/bloc/auth_event.dart';
 import 'package:inpecao_campo/features/auth/presentation/bloc/auth_state.dart';
-import 'package:inpecao_campo/features/auth/presentation/pages/login_page.dart';
+import 'package:inpecao_campo/features/home/presentation/pages/home_page.dart';
 import 'package:inpecao_campo/features/work_orders/data/database/work_orders_database.dart';
 import 'package:inpecao_campo/features/work_orders/data/datasources/work_orders_remote_data_source.dart';
 import 'package:inpecao_campo/features/work_orders/data/repositories/work_orders_repository_impl.dart';
-import 'package:inpecao_campo/features/work_orders/domain/entities/work_order.dart' as domain;
+import 'package:inpecao_campo/features/work_orders/domain/entities/work_order.dart'
+    as domain;
 import 'package:inpecao_campo/features/work_orders/domain/usecases/get_work_orders.dart';
 
 import '../bloc/work_orders_bloc.dart';
@@ -20,7 +23,6 @@ import '../widgets/database_status_banner.dart';
 import '../widgets/work_order_card.dart';
 import '../widgets/work_orders_filter_chips.dart';
 import '../widgets/work_orders_footer.dart';
-import '../widgets/work_orders_header.dart';
 import '../widgets/work_orders_search_bar.dart';
 
 class WorkOrdersPage extends StatefulWidget {
@@ -44,104 +46,126 @@ class _WorkOrdersPageState extends State<WorkOrdersPage> {
     context.read<AuthBloc>().add(LogoutEvent());
   }
 
+  void _handleNavigation(BuildContext context, int index) {
+    switch (index) {
+      case 0:
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute<void>(builder: (_) => const HomePage()),
+        );
+      case 1:
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('O mapa ainda não está disponível.')),
+        );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return MultiBlocListener(
-      listeners: [
-        BlocListener<AuthBloc, AuthState>(
-          listener: (context, state) {
-            if (state is AuthInitialState) {
-              Navigator.of(context).pushAndRemoveUntil(
-                MaterialPageRoute(builder: (_) => const LoginPage()),
-                (route) => false,
-              );
-            }
-          },
+    return BlocProvider(
+      create: (context) => WorkOrdersBloc(
+        GetWorkOrdersUseCase(
+          WorkOrdersRepositoryImpl(
+            remoteDataSource: WorkOrdersRemoteDataSourceImpl(
+              DioClient().instance,
+            ),
+            database: AppDatabase(),
+          ),
         ),
-      ],
-      child: BlocProvider(
-        create: (context) => WorkOrdersBloc(
-          GetWorkOrdersUseCase(
-            WorkOrdersRepositoryImpl(
-              remoteDataSource: WorkOrdersRemoteDataSourceImpl(
-                DioClient().instance,
-              ),
-              database: AppDatabase(),
-            ),
-          ),
-        )..add(FetchWorkOrdersEvent()),
-        child: Scaffold(
-          backgroundColor: AppColors.bgLight,
-          body: SafeArea(
-            child: BlocBuilder<WorkOrdersBloc, WorkOrdersState>(
-              buildWhen: (previous, current) => previous != current,
-              builder: (context, state) {
-                final loadedOrders = state is WorkOrdersLoadedState
-                    ? state.orders
-                    : const <domain.WorkOrder>[];
+      )..add(FetchWorkOrdersEvent()),
+      child: Scaffold(
+        backgroundColor: AppColors.bgLight,
+        body: SafeArea(
+          child: BlocBuilder<WorkOrdersBloc, WorkOrdersState>(
+            buildWhen: (previous, current) =>
+                previous.runtimeType != current.runtimeType ||
+                previous != current,
+            builder: (context, state) {
+              final loadedOrders = state is WorkOrdersLoadedState
+                  ? state.orders
+                  : const <domain.WorkOrder>[];
 
-                return Column(
-                  children: [
-                    WorkOrdersHeader(
-                      userName: 'Ana Técnica',
-                      onLogout: _handleLogout,
-                      onSync: () => context.read<WorkOrdersBloc>().add(
-                        FetchWorkOrdersEvent(),
-                      ),
-                    ),
-                    WorkOrdersSearchBar(
-                      controller: _searchController,
-                      onChanged: (query) {
-                        context.read<WorkOrdersBloc>().add(SearchWorkOrdersEvent(query));
+              return Column(
+                children: [
+                  BlocBuilder<AuthBloc, AuthState>(
+                    buildWhen: (previous, current) => previous != current,
+                    builder: (context, authState) {
+                      final user = authState is AuthSuccessState
+                          ? authState.user
+                          : null;
+                      return AppHeader(
+                        title: 'Ordens De Serviço',
+                        userName: user?.name ?? 'Usuário',
+                        userRole: user?.role ?? 'Técnico de campo',
+                        onLogout: _handleLogout,
+                        onSync: () => context.read<WorkOrdersBloc>().add(
+                          FetchWorkOrdersEvent(),
+                        ),
+                      );
+                    },
+                  ),
+                  WorkOrdersSearchBar(
+                    controller: _searchController,
+                    onChanged: (query) {
+                      context.read<WorkOrdersBloc>().add(
+                        SearchWorkOrdersEvent(query),
+                      );
+                    },
+                    onClear: () {
+                      _searchController.clear();
+                      context.read<WorkOrdersBloc>().add(
+                        SearchWorkOrdersEvent(''),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  WorkOrdersFilterChips(
+                    selectedFilter: _selectedFilter,
+                    onFilterSelected: (filter) {
+                      setState(() => _selectedFilter = filter);
+                      context.read<WorkOrdersBloc>().add(
+                        FilterByStatusEvent(filter),
+                      );
+                    },
+                  ),
+                  const DatabaseStatusBanner(),
+                  Expanded(
+                    child: RefreshIndicator(
+                      onRefresh: () async {
+                        context.read<WorkOrdersBloc>().add(
+                          FetchWorkOrdersEvent(),
+                        );
                       },
-                      onClear: () {
-                        _searchController.clear();
-                        context.read<WorkOrdersBloc>().add(SearchWorkOrdersEvent(''));
-                      },
+                      child: state is WorkOrdersLoadingState
+                          ? const Center(child: CircularProgressIndicator())
+                          : loadedOrders.isEmpty
+                          ? const Center(
+                              child: Text(
+                                'Nenhuma ordem de serviço encontrada.',
+                                style: TextStyle(color: AppColors.muted),
+                              ),
+                            )
+                          : ListView.builder(
+                              padding: const EdgeInsets.only(bottom: 16),
+                              itemCount: loadedOrders.length,
+                              itemBuilder: (context, index) {
+                                final order = loadedOrders[index];
+                                return WorkOrderCard(order: order);
+                              },
+                            ),
                     ),
-                    const SizedBox(height: 16),
-                    WorkOrdersFilterChips(
-                      selectedFilter: _selectedFilter,
-                      onFilterSelected: (filter) {
-                        setState(() => _selectedFilter = filter);
-                        context.read<WorkOrdersBloc>().add(FilterByStatusEvent(filter));
-                      },
-                    ),
-                    const DatabaseStatusBanner(),
-                    Expanded(
-                      child: RefreshIndicator(
-                        onRefresh: () async {
-                          context.read<WorkOrdersBloc>().add(FetchWorkOrdersEvent());
-                        },
-                        child: state is WorkOrdersLoadingState
-                            ? const Center(child: CircularProgressIndicator())
-                            : loadedOrders.isEmpty
-                                ? const Center(
-                                    child: Text(
-                                      'Nenhuma ordem de serviço encontrada.',
-                                      style: TextStyle(color: AppColors.muted),
-                                    ),
-                                  )
-                                : ListView.builder(
-                                    padding: const EdgeInsets.only(bottom: 16),
-                                    itemCount: loadedOrders.length,
-                                    itemExtent: 290,
-                                    itemBuilder: (context, index) {
-                                      final order = loadedOrders[index];
-                                      return WorkOrderCard(order: order);
-                                    },
-                                  ),
-                      ),
-                    ),
-                    WorkOrdersFooter(
-                      visibleCount: loadedOrders.length,
-                      totalCount: loadedOrders.length,
-                    ),
-                  ],
-                );
-              },
-            ),
+                  ),
+                  WorkOrdersFooter(
+                    visibleCount: loadedOrders.length,
+                    totalCount: loadedOrders.length,
+                  ),
+                ],
+              );
+            },
           ),
+        ),
+        bottomNavigationBar: BottomNavBar(
+          selectedIndex: 2,
+          onDestinationSelected: (index) => _handleNavigation(context, index),
         ),
       ),
     );

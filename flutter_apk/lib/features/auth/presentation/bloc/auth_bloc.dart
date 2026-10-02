@@ -1,37 +1,49 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
-import '../../data/datasources/auth_remote_data_source.dart';
+import '../../domain/errors/auth_unauthorized_exception.dart';
+import '../../domain/repositories/auth_repository.dart';
 import 'auth_event.dart';
 import 'auth_state.dart';
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
-  final AuthRemoteDataSource remoteDataSource;
-  final FlutterSecureStorage secureStorage;
+  final AuthRepository repository;
 
-  AuthBloc({required this.remoteDataSource, required this.secureStorage})
-    : super(AuthInitialState()) {
+  AuthBloc({required this.repository}) : super(AuthInitialState()) {
+    on<CheckAuthSessionEvent>((event, emit) async {
+      emit(AuthLoadingState());
+      try {
+        final session = await repository.restoreSession();
+        if (session == null) {
+          emit(AuthUnauthenticatedState());
+          return;
+        }
+        emit(AuthSuccessState(token: session.accessToken, user: session.user));
+      } on AuthUnauthorizedException {
+        await repository.logout();
+        emit(AuthUnauthenticatedState());
+      } catch (_) {
+        emit(const AuthErrorState(message: 'Falha ao validar a sessão.'));
+      }
+    });
+
     on<LoginSubmittedEvent>((event, emit) async {
       emit(AuthLoadingState());
 
       try {
-        final token = await remoteDataSource.login(event.email, event.password);
-
-        await secureStorage.write(key: 'access_token', value: token);
-
-        emit(AuthSuccessState(token: token));
-      } catch (e) {
+        final session = await repository.login(event.email, event.password);
+        emit(AuthSuccessState(token: session.accessToken, user: session.user));
+      } on AuthUnauthorizedException {
         emit(const AuthErrorState(message: 'E-mail ou senha inválidos.'));
+      } catch (_) {
+        emit(
+          const AuthErrorState(message: 'Falha ao conectar com o servidor.'),
+        );
       }
     });
 
     on<LogoutEvent>((event, emit) async {
-      try {
-        await remoteDataSource.logout();
-      } finally {
-        await secureStorage.delete(key: 'access_token');
-      }
-      emit(AuthInitialState());
+      await repository.logout();
+      emit(AuthUnauthenticatedState());
     });
   }
 }

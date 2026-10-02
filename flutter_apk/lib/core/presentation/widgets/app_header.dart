@@ -1,17 +1,22 @@
 import 'package:flutter/material.dart';
+
 import 'package:inpecao_campo/core/utils/colors.dart';
 
-import 'work_orders_profile_avatar.dart';
+import 'app_profile_avatar.dart';
 
-class WorkOrdersHeader extends StatelessWidget {
-  const WorkOrdersHeader({
+class AppHeader extends StatelessWidget {
+  const AppHeader({
     super.key,
+    required this.title,
     required this.userName,
+    required this.userRole,
     required this.onLogout,
     this.onSync,
   });
 
+  final String title;
   final String userName;
+  final String userRole;
   final VoidCallback onLogout;
   final VoidCallback? onSync;
 
@@ -23,22 +28,14 @@ class WorkOrdersHeader extends StatelessWidget {
         children: [
           Expanded(
             child: Text(
-              'Ordens De Serviço',
-              style:
-                  Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.darkText,
-                    letterSpacing: -0.5,
-                  ) ??
-                  const TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.darkText,
-                    letterSpacing: -0.5,
-                  ),
+              title,
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w800,
+                color: AppColors.darkText,
+                letterSpacing: -0.5,
+              ),
             ),
           ),
-          const SizedBox(width: 12),
           Container(
             width: 42,
             height: 42,
@@ -53,7 +50,11 @@ class WorkOrdersHeader extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 10),
-          WorkOrdersProfileAvatar(userName: userName, onLogout: onLogout),
+          AppProfileAvatar(
+            userName: userName,
+            role: userRole,
+            onLogout: onLogout,
+          ),
         ],
       ),
     );

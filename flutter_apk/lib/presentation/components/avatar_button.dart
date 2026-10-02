@@ -92,28 +92,10 @@ class ProfileAvatarMenu extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
           child: const Row(
             children: [
-              Icon(Icons.person_outline_rounded, color: AppColors.darkText, size: 22),
+              Icon(Icons.settings_outlined, color: AppColors.darkText, size: 22),
               SizedBox(width: 14),
               Text(
-                'Preferências',
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.darkText,
-                ),
-              ),
-            ],
-          ),
-        ),
-        PopupMenuItem<String>(
-          value: 'switch_accounts',
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-          child: const Row(
-            children: [
-              Icon(Icons.sync_alt_rounded, color: AppColors.darkText, size: 22),
-              SizedBox(width: 14),
-              Text(
-                'Trocar de contas',
+                'Configurações',
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w700,

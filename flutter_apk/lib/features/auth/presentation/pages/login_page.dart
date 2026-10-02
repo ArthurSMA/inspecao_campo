@@ -5,7 +5,6 @@ import 'package:inpecao_campo/core/utils/colors.dart';
 import 'package:inpecao_campo/presentation/components/custom_button.dart';
 import 'package:inpecao_campo/presentation/components/email_input_field.dart';
 import 'package:inpecao_campo/presentation/components/password_input_field.dart';
-import 'package:inpecao_campo/features/work_orders/presentation/pages/work_orders_page.dart';
 
 import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
@@ -31,7 +30,6 @@ class _LoginPageState extends State<LoginPage> {
     super.dispose();
   }
 
-  // Helper para mensagens de aviso/erro
   void _showSnackBar({
     required String message,
     required Color backgroundColor,
@@ -54,16 +52,23 @@ class _LoginPageState extends State<LoginPage> {
       backgroundColor: AppColors.bgLight,
       body: SafeArea(
         child: BlocConsumer<AuthBloc, AuthState>(
+          buildWhen: (previous, current) {
+            if (previous.runtimeType != current.runtimeType) {
+              return true;
+            }
+            return current is AuthErrorState &&
+                previous is AuthErrorState &&
+                previous.message != current.message;
+          },
           listener: (context, state) {
             if (state is AuthSuccessState) {
               _showSnackBar(
-                message: 'Login realizado com sucesso!',
+                message: 'Sessão autenticada.',
                 backgroundColor: Colors.green,
               );
 
-              Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (context) => const WorkOrdersPage()),
-              );
+              Navigator.of(context)
+                  .pushNamedAndRemoveUntil('/home', (_) => false);
             }
 
             if (state is AuthErrorState) {
