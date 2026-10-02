@@ -9,6 +9,7 @@ import 'package:inpecao_campo/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:inpecao_campo/features/auth/presentation/bloc/auth_event.dart';
 import 'package:inpecao_campo/features/auth/presentation/bloc/auth_state.dart';
 import 'package:inpecao_campo/features/home/presentation/pages/home_page.dart';
+import 'package:inpecao_campo/features/map/presentation/pages/map_page.dart';
 import 'package:inpecao_campo/features/work_orders/data/database/work_orders_database.dart';
 import 'package:inpecao_campo/features/work_orders/data/datasources/work_orders_remote_data_source.dart';
 import 'package:inpecao_campo/features/work_orders/data/repositories/work_orders_repository_impl.dart';
@@ -53,8 +54,13 @@ class _WorkOrdersPageState extends State<WorkOrdersPage> {
           MaterialPageRoute<void>(builder: (_) => const HomePage()),
         );
       case 1:
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('O mapa ainda não está disponível.')),
+        Navigator.of(context).push(
+          MaterialPageRoute<void>(
+            builder: (_) => BlocProvider.value(
+              value: context.read<WorkOrdersBloc>(),
+              child: const MapPage(),
+            ),
+          ),
         );
     }
   }
@@ -72,100 +78,103 @@ class _WorkOrdersPageState extends State<WorkOrdersPage> {
           ),
         ),
       )..add(FetchWorkOrdersEvent()),
-      child: Scaffold(
-        backgroundColor: AppColors.bgLight,
-        body: SafeArea(
-          child: BlocBuilder<WorkOrdersBloc, WorkOrdersState>(
-            buildWhen: (previous, current) =>
-                previous.runtimeType != current.runtimeType ||
-                previous != current,
-            builder: (context, state) {
-              final loadedOrders = state is WorkOrdersLoadedState
-                  ? state.orders
-                  : const <domain.WorkOrder>[];
+      child: Builder(
+        builder: (pageContext) => Scaffold(
+          backgroundColor: AppColors.bgLight,
+          body: SafeArea(
+            child: BlocBuilder<WorkOrdersBloc, WorkOrdersState>(
+              buildWhen: (previous, current) =>
+                  previous.runtimeType != current.runtimeType ||
+                  previous != current,
+              builder: (context, state) {
+                final loadedOrders = state is WorkOrdersLoadedState
+                    ? state.orders
+                    : const <domain.WorkOrder>[];
 
-              return Column(
-                children: [
-                  BlocBuilder<AuthBloc, AuthState>(
-                    buildWhen: (previous, current) => previous != current,
-                    builder: (context, authState) {
-                      final user = authState is AuthSuccessState
-                          ? authState.user
-                          : null;
-                      return AppHeader(
-                        title: 'Ordens De Serviço',
-                        userName: user?.name ?? 'Usuário',
-                        userRole: user?.role ?? 'Técnico de campo',
-                        onLogout: _handleLogout,
-                        onSync: () => context.read<WorkOrdersBloc>().add(
-                          FetchWorkOrdersEvent(),
-                        ),
-                      );
-                    },
-                  ),
-                  WorkOrdersSearchBar(
-                    controller: _searchController,
-                    onChanged: (query) {
-                      context.read<WorkOrdersBloc>().add(
-                        SearchWorkOrdersEvent(query),
-                      );
-                    },
-                    onClear: () {
-                      _searchController.clear();
-                      context.read<WorkOrdersBloc>().add(
-                        SearchWorkOrdersEvent(''),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  WorkOrdersFilterChips(
-                    selectedFilter: _selectedFilter,
-                    onFilterSelected: (filter) {
-                      setState(() => _selectedFilter = filter);
-                      context.read<WorkOrdersBloc>().add(
-                        FilterByStatusEvent(filter),
-                      );
-                    },
-                  ),
-                  const DatabaseStatusBanner(),
-                  Expanded(
-                    child: RefreshIndicator(
-                      onRefresh: () async {
-                        context.read<WorkOrdersBloc>().add(
-                          FetchWorkOrdersEvent(),
+                return Column(
+                  children: [
+                    BlocBuilder<AuthBloc, AuthState>(
+                      buildWhen: (previous, current) => previous != current,
+                      builder: (context, authState) {
+                        final user = authState is AuthSuccessState
+                            ? authState.user
+                            : null;
+                        return AppHeader(
+                          title: 'Ordens De Serviço',
+                          userName: user?.name ?? 'Usuário',
+                          userRole: user?.role ?? 'Técnico de campo',
+                          onLogout: _handleLogout,
+                          onSync: () => context.read<WorkOrdersBloc>().add(
+                            FetchWorkOrdersEvent(),
+                          ),
                         );
                       },
-                      child: state is WorkOrdersLoadingState
-                          ? const Center(child: CircularProgressIndicator())
-                          : loadedOrders.isEmpty
-                          ? const Center(
-                              child: Text(
-                                'Nenhuma ordem de serviço encontrada.',
-                                style: TextStyle(color: AppColors.muted),
-                              ),
-                            )
-                          : ListView.builder(
-                              padding: const EdgeInsets.only(bottom: 16),
-                              itemCount: loadedOrders.length,
-                              itemBuilder: (context, index) {
-                                final order = loadedOrders[index];
-                                return WorkOrderCard(order: order);
-                              },
-                            ),
                     ),
-                  ),
-                  WorkOrdersFooter(
-                    visibleCount: loadedOrders.length,
-                    totalCount: loadedOrders.length,
-                  ),
-                ],
-              );
-            },
+                    WorkOrdersSearchBar(
+                      controller: _searchController,
+                      onChanged: (query) {
+                        context.read<WorkOrdersBloc>().add(
+                          SearchWorkOrdersEvent(query),
+                        );
+                      },
+                      onClear: () {
+                        _searchController.clear();
+                        context.read<WorkOrdersBloc>().add(
+                          SearchWorkOrdersEvent(''),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    WorkOrdersFilterChips(
+                      selectedFilter: _selectedFilter,
+                      onFilterSelected: (filter) {
+                        setState(() => _selectedFilter = filter);
+                        context.read<WorkOrdersBloc>().add(
+                          FilterByStatusEvent(filter),
+                        );
+                      },
+                    ),
+                    const DatabaseStatusBanner(),
+                    Expanded(
+                      child: RefreshIndicator(
+                        onRefresh: () async {
+                          context.read<WorkOrdersBloc>().add(
+                            FetchWorkOrdersEvent(),
+                          );
+                        },
+                        child: state is WorkOrdersLoadingState
+                            ? const Center(child: CircularProgressIndicator())
+                            : loadedOrders.isEmpty
+                            ? const Center(
+                                child: Text(
+                                  'Nenhuma ordem de serviço encontrada.',
+                                  style: TextStyle(color: AppColors.muted),
+                                ),
+                              )
+                            : ListView.builder(
+                                padding: const EdgeInsets.only(bottom: 16),
+                                itemCount: loadedOrders.length,
+                                itemBuilder: (context, index) {
+                                  final order = loadedOrders[index];
+                                  return WorkOrderCard(order: order);
+                                },
+                              ),
+                      ),
+                    ),
+                    WorkOrdersFooter(
+                      visibleCount: loadedOrders.length,
+                      totalCount: loadedOrders.length,
+                    ),
+                  ],
+                );
+              },
+            ),
           ),
-        ),
-        bottomNavigationBar: BottomNavBar(
-          selectedIndex: 2,
-          onDestinationSelected: (index) => _handleNavigation(context, index),
+          bottomNavigationBar: BottomNavBar(
+            selectedIndex: 2,
+            onDestinationSelected: (index) =>
+                _handleNavigation(pageContext, index),
+          ),
         ),
       ),
     );

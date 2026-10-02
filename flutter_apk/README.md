@@ -1,17 +1,19 @@
 # inpecao_campo
 
-A new Flutter project.
+Aplicativo Flutter de inspeção de campo com persistência local offline-first.
 
-## Getting Started
+## Ordens de serviço no mapa
 
-This project is a starting point for a Flutter application.
+Administradores podem criar ordens de serviço pelo mapa. Essas ordens são
+persistidas no banco local Drift e permanecem disponíveis no dispositivo.
+O contrato da API atual só define `GET /work-orders`; não há endpoint de criação
+de ordens. Por isso, a sincronização não envia ordens criadas localmente ao
+servidor, e elas não são compartilhadas entre dispositivos.
 
-A few resources to get you started if this is your first Flutter project:
+Quando a API disponibilizar uma operação de criação, o envio poderá ser
+integrado à fila de sincronização existente sem alterar a persistência local.
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+## Desenvolvimento
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Execute `flutter analyze` e `flutter test` na pasta do projeto para validar as
+alterações.

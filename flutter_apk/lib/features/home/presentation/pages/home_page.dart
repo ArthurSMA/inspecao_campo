@@ -25,6 +25,7 @@ import 'package:inpecao_campo/features/work_orders/presentation/bloc/work_orders
 import 'package:inpecao_campo/features/work_orders/presentation/bloc/work_orders_event.dart';
 import 'package:inpecao_campo/features/work_orders/presentation/bloc/work_orders_state.dart';
 import 'package:inpecao_campo/features/work_orders/presentation/pages/work_orders_page.dart';
+import 'package:inpecao_campo/features/map/presentation/pages/map_page.dart';
 
 import 'inspection_history_page.dart';
 
@@ -100,8 +101,13 @@ class _HomePageState extends State<HomePage> {
   void _handleNavigation(BuildContext context, int index) {
     switch (index) {
       case 1:
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('O mapa ainda não está disponível.')),
+        Navigator.of(context).push(
+          MaterialPageRoute<void>(
+            builder: (_) => BlocProvider.value(
+              value: context.read<WorkOrdersBloc>(),
+              child: const MapPage(),
+            ),
+          ),
         );
       case 2:
         _openWorkOrders();

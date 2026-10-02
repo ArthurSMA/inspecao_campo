@@ -30,7 +30,15 @@ class WorkOrdersRepositoryImpl implements WorkOrdersRepository {
   }
 
   @override
-  Stream<List<domain.WorkOrder>> watchWorkOrders({String status = 'all', String query = ''}) {
+  Future<void> saveLocalWorkOrder(domain.WorkOrder workOrder) {
+    return database.saveWorkOrders([workOrder]);
+  }
+
+  @override
+  Stream<List<domain.WorkOrder>> watchWorkOrders({
+    String status = 'all',
+    String query = '',
+  }) {
     return database.watchWorkOrders(status: status, query: query);
   }
 }

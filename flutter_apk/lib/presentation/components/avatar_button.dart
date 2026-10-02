@@ -23,7 +23,6 @@ class ProfileAvatarMenu extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return PopupMenuButton<String>(
-      // Deslocamento para alinhar o card flutuante abaixo e levemente à esquerda do avatar
       offset: const Offset(-20, 50),
       elevation: 12,
       shadowColor: Colors.black.withValues(alpha: 0.25),
@@ -31,7 +30,6 @@ class ProfileAvatarMenu extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
       ),
-      // Customização dos itens do menu
       itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
         PopupMenuItem<String>(
           value: 'notifications',

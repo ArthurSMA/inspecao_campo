@@ -23,3 +23,9 @@ class WorkOrdersUpdatedEvent extends WorkOrdersEvent {
 
   WorkOrdersUpdatedEvent(this.orders);
 }
+
+class SaveLocalWorkOrderEvent extends WorkOrdersEvent {
+  final domain.WorkOrder workOrder;
+
+  SaveLocalWorkOrderEvent(this.workOrder);
+}
