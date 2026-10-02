@@ -5,7 +5,7 @@ import 'package:inpecao_campo/core/utils/colors.dart';
 import 'package:inpecao_campo/presentation/components/custom_button.dart';
 import 'package:inpecao_campo/presentation/components/email_input_field.dart';
 import 'package:inpecao_campo/presentation/components/password_input_field.dart';
-import 'package:inpecao_campo/features/work_orders/presentation/home_page.dart';
+import 'package:inpecao_campo/features/work_orders/presentation/pages/work_orders_page.dart';
 
 import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
@@ -62,7 +62,7 @@ class _LoginPageState extends State<LoginPage> {
               );
 
               Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (context) => const HomePage()),
+                MaterialPageRoute(builder: (context) => const WorkOrdersPage()),
               );
             }
 

@@ -17,7 +17,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       try {
         final token = await remoteDataSource.login(event.email, event.password);
 
-        await secureStorage.write(key: 'jwt_token', value: token);
+        await secureStorage.write(key: 'access_token', value: token);
 
         emit(AuthSuccessState(token: token));
       } catch (e) {
@@ -26,7 +26,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     });
 
     on<LogoutEvent>((event, emit) async {
-      await secureStorage.delete(key: 'jwt_token');
+      await secureStorage.delete(key: 'access_token');
       emit(AuthInitialState());
     });
   }

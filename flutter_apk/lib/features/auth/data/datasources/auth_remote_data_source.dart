@@ -2,16 +2,22 @@ import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:inpecao_campo/core/network/dio_client.dart';
 
-class AuthRemoteDataSource {
+abstract interface class AuthRemoteDataSource {
+  Future<String> login(String email, String password);
+
+  Future<void> logout();
+}
+
+class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   final DioClient _dioClient;
   final FlutterSecureStorage _secureStorage;
 
-  AuthRemoteDataSource({
-    required DioClient dioClient,
+  AuthRemoteDataSourceImpl(
+    this._dioClient, {
     FlutterSecureStorage? secureStorage,
-  }) : _dioClient = dioClient,
-       _secureStorage = secureStorage ?? const FlutterSecureStorage();
+  }) : _secureStorage = secureStorage ?? const FlutterSecureStorage();
 
+  @override
   Future<String> login(String email, String password) async {
     try {
       final response = await _dioClient.instance.post(
@@ -32,6 +38,7 @@ class AuthRemoteDataSource {
     }
   }
 
+  @override
   Future<void> logout() async {
     await _secureStorage.delete(key: 'access_token');
   }

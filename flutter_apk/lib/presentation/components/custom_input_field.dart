@@ -34,7 +34,7 @@ class CustomInputField extends StatelessWidget {
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w700,
-              color: AppColors.bodyText.withOpacity(0.8),
+              color: AppColors.bodyText.withValues(alpha: 0.8),
               letterSpacing: 1.2,
             ),
           ),
@@ -46,7 +46,7 @@ class CustomInputField extends StatelessWidget {
             border: Border.all(color: Colors.grey.shade300, width: 1.5),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.03),
+                color: Colors.black.withValues(alpha: 0.03),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               ),
@@ -62,7 +62,7 @@ class CustomInputField extends StatelessWidget {
             ),
             decoration: InputDecoration(
               hintText: hint,
-              hintStyle: TextStyle(color: Colors.grey.withOpacity(0.4)),
+              hintStyle: TextStyle(color: Colors.grey.withValues(alpha: 0.4)),
               prefixIcon: Icon(icon, color: Colors.blue, size: 22),
               suffixIcon: suffixIcon,
               border: InputBorder.none,

@@ -25,7 +25,7 @@ class MyApp extends StatelessWidget {
       providers: [
         BlocProvider<AuthBloc>(
           create: (context) => AuthBloc(
-            remoteDataSource: AuthRemoteDataSource(dioClient: DioClient()),
+            remoteDataSource: AuthRemoteDataSourceImpl(DioClient()),
             secureStorage: const FlutterSecureStorage(),
           ),
         ),
