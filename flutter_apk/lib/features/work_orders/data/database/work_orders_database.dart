@@ -51,6 +51,16 @@ class Inspections extends Table {
   Set<Column<Object>> get primaryKey => {id};
 }
 
+class InspectionSyncQueue extends Table {
+  TextColumn get clientId => text()();
+  DateTimeColumn get queuedAt => dateTime()();
+  IntColumn get attemptCount => integer().withDefault(const Constant(0))();
+  TextColumn get lastError => text().nullable()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {clientId};
+}
+
 LazyDatabase _openConnection() {
   return LazyDatabase(() async {
     final dbFolder = await getApplicationDocumentsDirectory();
@@ -59,12 +69,12 @@ LazyDatabase _openConnection() {
   });
 }
 
-@DriftDatabase(tables: [WorkOrders, Inspections])
+@DriftDatabase(tables: [WorkOrders, Inspections, InspectionSyncQueue])
 class AppDatabase extends _$AppDatabase {
-  AppDatabase() : super(_openConnection());
+  AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -74,6 +84,9 @@ class AppDatabase extends _$AppDatabase {
     onUpgrade: (migrator, from, to) async {
       if (from < 2) {
         await migrator.createTable(inspections);
+      }
+      if (from < 3) {
+        await migrator.createTable(inspectionSyncQueue);
       }
     },
   );
@@ -167,6 +180,49 @@ class AppDatabase extends _$AppDatabase {
     await into(inspections).insertOnConflictUpdate(inspection.toCompanion());
   }
 
+  Future<void> saveDraftInspection(
+    domain_inspection.Inspection inspection,
+  ) async {
+    await transaction(() async {
+      await into(inspections).insertOnConflictUpdate(inspection.toCompanion());
+      await (delete(
+        inspectionSyncQueue,
+      )..where((row) => row.clientId.equals(inspection.clientId))).go();
+    });
+  }
+
+  Future<void> savePendingInspection(
+    domain_inspection.Inspection inspection,
+  ) async {
+    await transaction(() async {
+      await into(inspections).insertOnConflictUpdate(inspection.toCompanion());
+      await into(inspectionSyncQueue).insertOnConflictUpdate(
+        InspectionSyncQueueCompanion.insert(
+          clientId: inspection.clientId,
+          queuedAt: DateTime.now().toUtc(),
+          attemptCount: const Value(0),
+          lastError: const Value.absent(),
+        ),
+      );
+    });
+  }
+
+  Future<List<domain_inspection.Inspection>> getQueuedInspections() async {
+    final queueRows = await (select(
+      inspectionSyncQueue,
+    )..orderBy([(row) => OrderingTerm.asc(row.queuedAt)])).get();
+    final inspections = <domain_inspection.Inspection>[];
+    for (final queueRow in queueRows) {
+      final inspection = await getInspectionByClientId(queueRow.clientId);
+      if (inspection != null &&
+          (inspection.status == domain_inspection.Inspection.statusPending ||
+              inspection.status == domain_inspection.Inspection.statusFailed)) {
+        inspections.add(inspection);
+      }
+    }
+    return inspections;
+  }
+
   Future<void> updateInspectionStatus(
     String clientId, {
     required String status,
@@ -184,9 +240,37 @@ class AppDatabase extends _$AppDatabase {
       photoUrl: Value(photoUrl),
     );
 
-    await (update(
-      inspections,
-    )..where((row) => row.clientId.equals(clientId))).write(companion);
+    await transaction(() async {
+      await (update(
+        inspections,
+      )..where((row) => row.clientId.equals(clientId))).write(companion);
+      if (status == domain_inspection.Inspection.statusSynced) {
+        await (delete(
+          inspectionSyncQueue,
+        )..where((row) => row.clientId.equals(clientId))).go();
+      } else if (status == domain_inspection.Inspection.statusFailed) {
+        await (update(
+          inspectionSyncQueue,
+        )..where((row) => row.clientId.equals(clientId))).write(
+          InspectionSyncQueueCompanion(
+            attemptCount: const Value.absent(),
+            lastError: Value(errorMessage),
+          ),
+        );
+        await customStatement(
+          'UPDATE inspection_sync_queue SET attempt_count = attempt_count + 1 WHERE client_id = ?',
+          [clientId],
+        );
+      } else if (status == domain_inspection.Inspection.statusPending) {
+        await into(inspectionSyncQueue).insertOnConflictUpdate(
+          InspectionSyncQueueCompanion.insert(
+            clientId: clientId,
+            queuedAt: DateTime.now().toUtc(),
+            lastError: const Value.absent(),
+          ),
+        );
+      }
+    });
   }
 }
 

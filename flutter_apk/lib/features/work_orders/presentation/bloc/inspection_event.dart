@@ -11,8 +11,44 @@ abstract class InspectionEvent extends Equatable {
 
 class LoadInspectionHistoryEvent extends InspectionEvent {}
 
+class FilterInspectionHistoryEvent extends InspectionEvent {
+  const FilterInspectionHistoryEvent(this.status);
+
+  final String status;
+
+  @override
+  List<Object?> get props => [status];
+}
+
+class InspectionHistoryUpdatedEvent extends InspectionEvent {
+  const InspectionHistoryUpdatedEvent(this.inspections);
+
+  final List<Inspection> inspections;
+
+  @override
+  List<Object?> get props => [inspections];
+}
+
+class ConnectivityMonitoringErrorEvent extends InspectionEvent {
+  const ConnectivityMonitoringErrorEvent(this.message);
+
+  final String message;
+
+  @override
+  List<Object?> get props => [message];
+}
+
 class SaveDraftInspectionEvent extends InspectionEvent {
   const SaveDraftInspectionEvent(this.inspection);
+
+  final Inspection inspection;
+
+  @override
+  List<Object?> get props => [inspection];
+}
+
+class SavePendingInspectionEvent extends InspectionEvent {
+  const SavePendingInspectionEvent(this.inspection);
 
   final Inspection inspection;
 

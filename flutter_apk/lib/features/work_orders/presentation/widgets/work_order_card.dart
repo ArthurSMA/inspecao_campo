@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:inpecao_campo/core/utils/colors.dart';
 import 'package:inpecao_campo/core/utils/geo_utils.dart';
-import 'package:inpecao_campo/features/work_orders/data/services/inspection_location_service.dart';
 import 'package:inpecao_campo/features/work_orders/domain/entities/work_order.dart';
+import 'package:inpecao_campo/features/work_orders/presentation/bloc/inspection_bloc.dart';
+import 'package:inpecao_campo/features/work_orders/presentation/pages/inspection_form_page.dart';
 
 class WorkOrderCard extends StatefulWidget {
   const WorkOrderCard({super.key, required this.order});
@@ -15,8 +17,21 @@ class WorkOrderCard extends StatefulWidget {
 }
 
 class _WorkOrderCardState extends State<WorkOrderCard> {
-  bool _isCapturingLocation = false;
-  InspectionLocationCapture? _locationCapture;
+  Future<void> _handleStartInspection() async {
+    final inspectionBloc = context.read<InspectionBloc>();
+    final result = await Navigator.of(context).push<String>(
+      MaterialPageRoute<String>(
+        builder: (_) => BlocProvider.value(
+          value: inspectionBloc,
+          child: InspectionFormPage(workOrder: widget.order),
+        ),
+      ),
+    );
+    if (result != null && mounted) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(result)));
+    }
+  }
 
   String _statusLabel(String status) {
     switch (status) {
@@ -102,46 +117,16 @@ class _WorkOrderCardState extends State<WorkOrderCard> {
     }
   }
 
-  Future<void> _handleStartInspection() async {
-    setState(() => _isCapturingLocation = true);
-
-    final capture = await InspectionLocationService.captureCurrentLocation(
-      targetLatitude: widget.order.latitude,
-      targetLongitude: widget.order.longitude,
-    );
-
-    if (!mounted) {
-      return;
-    }
-
-    setState(() {
-      _isCapturingLocation = false;
-      _locationCapture = capture;
-    });
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(capture.message),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final statusColor = _statusColor(widget.order.status);
     final statusBackground = _statusBackground(widget.order.status);
     final priorityColor = _priorityColor(widget.order.priority);
     final priorityBackground = _priorityBackground(widget.order.priority);
-    final currentCoordinateSummary = _locationCapture != null
-        ? _locationCapture!.coordinateSummary
-        : GeoUtils.formatCoordinate(
-            widget.order.latitude,
-            widget.order.longitude,
-          );
-    final distanceLabel = _locationCapture != null
-        ? 'Distância até a OS: ${GeoUtils.formatDistance(_locationCapture!.distanceMeters)}'
-        : 'Ponto da OS: ${GeoUtils.formatCoordinate(widget.order.latitude, widget.order.longitude)}';
+    final coordinateSummary = GeoUtils.formatCoordinate(
+      widget.order.latitude,
+      widget.order.longitude,
+    );
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
@@ -158,187 +143,166 @@ class _WorkOrderCardState extends State<WorkOrderCard> {
           ),
         ],
       ),
-      child: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 7,
-                  ),
-                  decoration: BoxDecoration(
-                    color: statusBackground,
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                  child: Text(
-                    _statusLabel(widget.order.status),
-                    style: TextStyle(
-                      color: statusColor,
-                      fontSize: 10,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 0.2,
-                    ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 7,
+                ),
+                decoration: BoxDecoration(
+                  color: statusBackground,
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Text(
+                  _statusLabel(widget.order.status),
+                  style: TextStyle(
+                    color: statusColor,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.2,
                   ),
                 ),
-                const SizedBox(width: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 7,
+              ),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 7,
+                ),
+                decoration: BoxDecoration(
+                  color: priorityBackground,
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Text(
+                  'PRIORIDADE ${_priorityLabel(widget.order.priority)}',
+                  style: TextStyle(
+                    color: priorityColor,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.2,
                   ),
-                  decoration: BoxDecoration(
-                    color: priorityBackground,
-                    borderRadius: BorderRadius.circular(999),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          RichText(
+            text: TextSpan(
+              children: [
+                TextSpan(
+                  text: '${widget.order.code} • ',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.primary,
                   ),
-                  child: Text(
-                    'PRIORIDADE ${_priorityLabel(widget.order.priority)}',
-                    style: TextStyle(
-                      color: priorityColor,
-                      fontSize: 10,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 0.2,
-                    ),
+                ),
+                TextSpan(
+                  text: widget.order.title,
+                  style: const TextStyle(
+                    color: AppColors.darkText,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                    height: 1.4,
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 12),
-            RichText(
-              text: TextSpan(
-                children: [
-                  TextSpan(
-                    text: '${widget.order.code} • ',
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w800,
+          ),
+          const SizedBox(height: 10),
+          Text(
+            widget.order.description,
+            style: const TextStyle(
+              color: AppColors.bodyText,
+              fontSize: 13,
+              height: 1.5,
+            ),
+          ),
+          const SizedBox(height: 14),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Column(
+              children: [
+                _InfoRow(
+                  icon: Icons.location_on_rounded,
+                  label: 'Endereço',
+                  value: widget.order.address,
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _InfoRow(
+                        icon: Icons.my_location_rounded,
+                        label: 'Latitude',
+                        value: widget.order.latitude.toStringAsFixed(4),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _InfoRow(
+                        icon: Icons.gps_fixed_rounded,
+                        label: 'Longitude',
+                        value: widget.order.longitude.toStringAsFixed(4),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.gps_fixed_rounded,
+                      size: 15,
                       color: AppColors.primary,
                     ),
-                  ),
-                  TextSpan(
-                    text: widget.order.title,
-                    style: const TextStyle(
-                      color: AppColors.darkText,
-                      fontSize: 18,
-                      fontWeight: FontWeight.w800,
-                      height: 1.4,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 10),
-            Text(
-              widget.order.description,
-              style: const TextStyle(
-                color: AppColors.bodyText,
-                fontSize: 13,
-                height: 1.5,
-              ),
-            ),
-            const SizedBox(height: 14),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: AppColors.surface,
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: Column(
-                children: [
-                  _InfoRow(
-                    icon: Icons.location_on_rounded,
-                    label: 'Endereço',
-                    value: widget.order.address,
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _InfoRow(
-                          icon: Icons.my_location_rounded,
-                          label: 'Latitude',
-                          value: widget.order.latitude.toStringAsFixed(4),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        'GPS: $coordinateSummary',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: AppColors.darkText,
+                          fontWeight: FontWeight.w700,
+                          height: 1.4,
                         ),
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _InfoRow(
-                          icon: Icons.gps_fixed_rounded,
-                          label: 'Longitude',
-                          value: widget.order.longitude.toStringAsFixed(4),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.gps_fixed_rounded,
-                        size: 15,
-                        color: AppColors.primary,
-                      ),
-                      const SizedBox(width: 6),
-                      Expanded(
-                        child: Text(
-                          'GPS: $currentCoordinateSummary',
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: AppColors.darkText,
-                            fontWeight: FontWeight.w700,
-                            height: 1.4,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    distanceLabel,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color:
-                          _locationCapture != null &&
-                              !_locationCapture!.isNearTarget
-                          ? AppColors.warning
-                          : AppColors.success,
-                      fontWeight: FontWeight.w700,
                     ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 14),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                FilledButton(
-                  onPressed: _isCapturingLocation
-                      ? null
-                      : _handleStartInspection,
-                  style: FilledButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 14,
-                      horizontal: 15,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: Text(
-                    _isCapturingLocation
-                        ? 'Capturando GPS...'
-                        : _actionLabel(widget.order.status),
-                  ),
+                  ],
                 ),
               ],
             ),
-          ],
-        ),
+          ),
+          const SizedBox(height: 14),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              FilledButton(
+                onPressed: _handleStartInspection,
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 14,
+                    horizontal: 15,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: Text(_actionLabel(widget.order.status)),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

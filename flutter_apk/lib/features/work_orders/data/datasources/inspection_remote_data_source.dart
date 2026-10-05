@@ -24,25 +24,32 @@ class InspectionRemoteDataSourceImpl implements InspectionRemoteDataSource {
 
   @override
   Future<InspectionModel> submitInspection(InspectionModel inspection) async {
+    final photoPath = inspection.photoPath;
+    if (photoPath == null || photoPath.isEmpty) {
+      throw StateError('A foto da inspeção é obrigatória para sincronizar.');
+    }
+
     final formData = FormData.fromMap({
       'clientId': inspection.clientId,
       'workOrderId': inspection.workOrderId,
       'observation': inspection.observation,
-      'condition': inspection.condition ?? '',
+      if (inspection.condition != null) 'condition': inspection.condition,
       'latitude': inspection.latitude,
       'longitude': inspection.longitude,
       'capturedAt': inspection.capturedAt.toUtc().toIso8601String(),
-      if (inspection.photoPath != null && inspection.photoPath!.isNotEmpty)
-        'photo': await MultipartFile.fromFile(
-          inspection.photoPath!,
-          filename: p.basename(inspection.photoPath!),
-        ),
+      'photo': await MultipartFile.fromFile(
+        photoPath,
+        filename: p.basename(photoPath),
+      ),
     });
 
     final response = await _dio.post(
       '/inspections',
       data: formData,
-      options: Options(contentType: 'multipart/form-data'),
+      options: Options(
+        contentType: 'multipart/form-data',
+        sendTimeout: const Duration(seconds: 30),
+      ),
     );
 
     if (response.statusCode == null ||

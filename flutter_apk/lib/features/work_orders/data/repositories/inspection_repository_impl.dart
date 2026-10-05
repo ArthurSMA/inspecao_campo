@@ -1,17 +1,25 @@
+import 'package:dio/dio.dart';
+
 import '../../domain/entities/inspection.dart';
 import '../../domain/repositories/inspection_repository.dart';
 import '../database/work_orders_database.dart';
 import '../datasources/inspection_remote_data_source.dart';
 import '../models/inspection_model.dart';
+import '../services/network_connectivity_service.dart';
 
 class InspectionRepositoryImpl implements InspectionRepository {
   InspectionRepositoryImpl({
     required this.remoteDataSource,
     AppDatabase? database,
-  }) : database = database ?? AppDatabase();
+    NetworkConnectivityService? connectivityService,
+  }) : database = database ?? AppDatabase(),
+       connectivityService =
+           connectivityService ?? NetworkConnectivityServiceImpl();
 
   final InspectionRemoteDataSource remoteDataSource;
   final AppDatabase database;
+  final NetworkConnectivityService connectivityService;
+  Future<void>? _activeSync;
 
   @override
   Future<List<Inspection>> getInspectionHistory({String status = 'all'}) {
@@ -30,7 +38,17 @@ class InspectionRepositoryImpl implements InspectionRepository {
       errorMessage: null,
       syncedAt: null,
     );
-    await database.saveInspection(draftInspection);
+    await database.saveDraftInspection(draftInspection);
+  }
+
+  @override
+  Future<void> savePending(Inspection inspection) async {
+    final pendingInspection = inspection.copyWith(
+      status: Inspection.statusPending,
+      errorMessage: null,
+      syncedAt: null,
+    );
+    await database.savePendingInspection(pendingInspection);
   }
 
   @override
@@ -48,14 +66,18 @@ class InspectionRepositoryImpl implements InspectionRepository {
   }
 
   @override
-  Future<void> syncPendingInspections() async {
-    final pendingList = await database.getInspections(
-      status: Inspection.statusPending,
-    );
-    final failedList = await database.getInspections(
-      status: Inspection.statusFailed,
-    );
-    final items = [...pendingList, ...failedList];
+  Future<void> syncPendingInspections() {
+    return _activeSync ??= _processSyncQueue().whenComplete(() {
+      _activeSync = null;
+    });
+  }
+
+  Future<void> _processSyncQueue() async {
+    if (!await connectivityService.isConnected) {
+      return;
+    }
+
+    final items = await database.getQueuedInspections();
 
     for (final inspection in items) {
       try {
@@ -91,10 +113,35 @@ class InspectionRepositoryImpl implements InspectionRepository {
         await database.updateInspectionStatus(
           inspection.clientId,
           status: Inspection.statusFailed,
-          errorMessage: error.toString(),
+          errorMessage: _errorMessage(error),
         );
       }
     }
+  }
+
+  String _errorMessage(Object error) {
+    if (error is DioException) {
+      final responseData = error.response?.data;
+      final responseMessage = responseData is Map
+          ? responseData['message']
+          : null;
+      if (responseMessage is String && responseMessage.isNotEmpty) {
+        final statusCode = error.response?.statusCode;
+        return statusCode == null
+            ? responseMessage
+            : '$responseMessage (HTTP $statusCode)';
+      }
+      if (error.type == DioExceptionType.connectionTimeout ||
+          error.type == DioExceptionType.receiveTimeout ||
+          error.type == DioExceptionType.sendTimeout) {
+        return 'Tempo limite excedido ao sincronizar a inspeção.';
+      }
+      final statusCode = error.response?.statusCode;
+      if (statusCode != null) {
+        return 'Falha ao sincronizar a inspeção (HTTP $statusCode).';
+      }
+    }
+    return error.toString();
   }
 
   @override
@@ -102,6 +149,12 @@ class InspectionRepositoryImpl implements InspectionRepository {
     final inspection = await database.getInspectionByClientId(clientId);
     if (inspection == null) {
       return;
+    }
+    if (inspection.status != Inspection.statusFailed &&
+        inspection.status != Inspection.statusPending) {
+      throw StateError(
+        'Somente inspeções pendentes ou com falha podem ser reenviadas.',
+      );
     }
 
     await database.updateInspectionStatus(

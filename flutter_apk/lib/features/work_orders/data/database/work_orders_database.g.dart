@@ -1,3 +1,5 @@
+// GENERATED CODE - DO NOT MODIFY BY HAND
+
 part of 'work_orders_database.dart';
 
 // ignore_for_file: type=lint
@@ -1577,16 +1579,351 @@ class InspectionsCompanion extends UpdateCompanion<InspectionData> {
   }
 }
 
+class $InspectionSyncQueueTable extends InspectionSyncQueue
+    with TableInfo<$InspectionSyncQueueTable, InspectionSyncQueueData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $InspectionSyncQueueTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _clientIdMeta = const VerificationMeta(
+    'clientId',
+  );
+  @override
+  late final GeneratedColumn<String> clientId = GeneratedColumn<String>(
+    'client_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _queuedAtMeta = const VerificationMeta(
+    'queuedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> queuedAt = GeneratedColumn<DateTime>(
+    'queued_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _attemptCountMeta = const VerificationMeta(
+    'attemptCount',
+  );
+  @override
+  late final GeneratedColumn<int> attemptCount = GeneratedColumn<int>(
+    'attempt_count',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _lastErrorMeta = const VerificationMeta(
+    'lastError',
+  );
+  @override
+  late final GeneratedColumn<String> lastError = GeneratedColumn<String>(
+    'last_error',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    clientId,
+    queuedAt,
+    attemptCount,
+    lastError,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'inspection_sync_queue';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<InspectionSyncQueueData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('client_id')) {
+      context.handle(
+        _clientIdMeta,
+        clientId.isAcceptableOrUnknown(data['client_id']!, _clientIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_clientIdMeta);
+    }
+    if (data.containsKey('queued_at')) {
+      context.handle(
+        _queuedAtMeta,
+        queuedAt.isAcceptableOrUnknown(data['queued_at']!, _queuedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_queuedAtMeta);
+    }
+    if (data.containsKey('attempt_count')) {
+      context.handle(
+        _attemptCountMeta,
+        attemptCount.isAcceptableOrUnknown(
+          data['attempt_count']!,
+          _attemptCountMeta,
+        ),
+      );
+    }
+    if (data.containsKey('last_error')) {
+      context.handle(
+        _lastErrorMeta,
+        lastError.isAcceptableOrUnknown(data['last_error']!, _lastErrorMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {clientId};
+  @override
+  InspectionSyncQueueData map(
+    Map<String, dynamic> data, {
+    String? tablePrefix,
+  }) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return InspectionSyncQueueData(
+      clientId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}client_id'],
+      )!,
+      queuedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}queued_at'],
+      )!,
+      attemptCount: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}attempt_count'],
+      )!,
+      lastError: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}last_error'],
+      ),
+    );
+  }
+
+  @override
+  $InspectionSyncQueueTable createAlias(String alias) {
+    return $InspectionSyncQueueTable(attachedDatabase, alias);
+  }
+}
+
+class InspectionSyncQueueData extends DataClass
+    implements Insertable<InspectionSyncQueueData> {
+  final String clientId;
+  final DateTime queuedAt;
+  final int attemptCount;
+  final String? lastError;
+  const InspectionSyncQueueData({
+    required this.clientId,
+    required this.queuedAt,
+    required this.attemptCount,
+    this.lastError,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['client_id'] = Variable<String>(clientId);
+    map['queued_at'] = Variable<DateTime>(queuedAt);
+    map['attempt_count'] = Variable<int>(attemptCount);
+    if (!nullToAbsent || lastError != null) {
+      map['last_error'] = Variable<String>(lastError);
+    }
+    return map;
+  }
+
+  InspectionSyncQueueCompanion toCompanion(bool nullToAbsent) {
+    return InspectionSyncQueueCompanion(
+      clientId: Value(clientId),
+      queuedAt: Value(queuedAt),
+      attemptCount: Value(attemptCount),
+      lastError: lastError == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastError),
+    );
+  }
+
+  factory InspectionSyncQueueData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return InspectionSyncQueueData(
+      clientId: serializer.fromJson<String>(json['clientId']),
+      queuedAt: serializer.fromJson<DateTime>(json['queuedAt']),
+      attemptCount: serializer.fromJson<int>(json['attemptCount']),
+      lastError: serializer.fromJson<String?>(json['lastError']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'clientId': serializer.toJson<String>(clientId),
+      'queuedAt': serializer.toJson<DateTime>(queuedAt),
+      'attemptCount': serializer.toJson<int>(attemptCount),
+      'lastError': serializer.toJson<String?>(lastError),
+    };
+  }
+
+  InspectionSyncQueueData copyWith({
+    String? clientId,
+    DateTime? queuedAt,
+    int? attemptCount,
+    Value<String?> lastError = const Value.absent(),
+  }) => InspectionSyncQueueData(
+    clientId: clientId ?? this.clientId,
+    queuedAt: queuedAt ?? this.queuedAt,
+    attemptCount: attemptCount ?? this.attemptCount,
+    lastError: lastError.present ? lastError.value : this.lastError,
+  );
+  InspectionSyncQueueData copyWithCompanion(InspectionSyncQueueCompanion data) {
+    return InspectionSyncQueueData(
+      clientId: data.clientId.present ? data.clientId.value : this.clientId,
+      queuedAt: data.queuedAt.present ? data.queuedAt.value : this.queuedAt,
+      attemptCount: data.attemptCount.present
+          ? data.attemptCount.value
+          : this.attemptCount,
+      lastError: data.lastError.present ? data.lastError.value : this.lastError,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('InspectionSyncQueueData(')
+          ..write('clientId: $clientId, ')
+          ..write('queuedAt: $queuedAt, ')
+          ..write('attemptCount: $attemptCount, ')
+          ..write('lastError: $lastError')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(clientId, queuedAt, attemptCount, lastError);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is InspectionSyncQueueData &&
+          other.clientId == this.clientId &&
+          other.queuedAt == this.queuedAt &&
+          other.attemptCount == this.attemptCount &&
+          other.lastError == this.lastError);
+}
+
+class InspectionSyncQueueCompanion
+    extends UpdateCompanion<InspectionSyncQueueData> {
+  final Value<String> clientId;
+  final Value<DateTime> queuedAt;
+  final Value<int> attemptCount;
+  final Value<String?> lastError;
+  final Value<int> rowid;
+  const InspectionSyncQueueCompanion({
+    this.clientId = const Value.absent(),
+    this.queuedAt = const Value.absent(),
+    this.attemptCount = const Value.absent(),
+    this.lastError = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  InspectionSyncQueueCompanion.insert({
+    required String clientId,
+    required DateTime queuedAt,
+    this.attemptCount = const Value.absent(),
+    this.lastError = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : clientId = Value(clientId),
+       queuedAt = Value(queuedAt);
+  static Insertable<InspectionSyncQueueData> custom({
+    Expression<String>? clientId,
+    Expression<DateTime>? queuedAt,
+    Expression<int>? attemptCount,
+    Expression<String>? lastError,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (clientId != null) 'client_id': clientId,
+      if (queuedAt != null) 'queued_at': queuedAt,
+      if (attemptCount != null) 'attempt_count': attemptCount,
+      if (lastError != null) 'last_error': lastError,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  InspectionSyncQueueCompanion copyWith({
+    Value<String>? clientId,
+    Value<DateTime>? queuedAt,
+    Value<int>? attemptCount,
+    Value<String?>? lastError,
+    Value<int>? rowid,
+  }) {
+    return InspectionSyncQueueCompanion(
+      clientId: clientId ?? this.clientId,
+      queuedAt: queuedAt ?? this.queuedAt,
+      attemptCount: attemptCount ?? this.attemptCount,
+      lastError: lastError ?? this.lastError,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (clientId.present) {
+      map['client_id'] = Variable<String>(clientId.value);
+    }
+    if (queuedAt.present) {
+      map['queued_at'] = Variable<DateTime>(queuedAt.value);
+    }
+    if (attemptCount.present) {
+      map['attempt_count'] = Variable<int>(attemptCount.value);
+    }
+    if (lastError.present) {
+      map['last_error'] = Variable<String>(lastError.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('InspectionSyncQueueCompanion(')
+          ..write('clientId: $clientId, ')
+          ..write('queuedAt: $queuedAt, ')
+          ..write('attemptCount: $attemptCount, ')
+          ..write('lastError: $lastError, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
   late final $WorkOrdersTable workOrders = $WorkOrdersTable(this);
   late final $InspectionsTable inspections = $InspectionsTable(this);
+  late final $InspectionSyncQueueTable inspectionSyncQueue =
+      $InspectionSyncQueueTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
-  List<DatabaseSchemaEntity> get allSchemaEntities => [workOrders, inspections];
+  List<DatabaseSchemaEntity> get allSchemaEntities => [
+    workOrders,
+    inspections,
+    inspectionSyncQueue,
+  ];
 }
 
 typedef $$WorkOrdersTableCreateCompanionBuilder = WorkOrdersCompanion Function({
@@ -2340,6 +2677,217 @@ typedef $$InspectionsTableProcessedTableManager =
       InspectionData,
       PrefetchHooks Function()
     >;
+typedef $$InspectionSyncQueueTableCreateCompanionBuilder =
+    InspectionSyncQueueCompanion Function({
+      required String clientId,
+      required DateTime queuedAt,
+      Value<int> attemptCount,
+      Value<String?> lastError,
+      Value<int> rowid,
+    });
+typedef $$InspectionSyncQueueTableUpdateCompanionBuilder =
+    InspectionSyncQueueCompanion Function({
+      Value<String> clientId,
+      Value<DateTime> queuedAt,
+      Value<int> attemptCount,
+      Value<String?> lastError,
+      Value<int> rowid,
+    });
+
+class $$InspectionSyncQueueTableFilterComposer
+    extends Composer<_$AppDatabase, $InspectionSyncQueueTable> {
+  $$InspectionSyncQueueTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get clientId => $composableBuilder(
+    column: $table.clientId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get queuedAt => $composableBuilder(
+    column: $table.queuedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get attemptCount => $composableBuilder(
+    column: $table.attemptCount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get lastError => $composableBuilder(
+    column: $table.lastError,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$InspectionSyncQueueTableOrderingComposer
+    extends Composer<_$AppDatabase, $InspectionSyncQueueTable> {
+  $$InspectionSyncQueueTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get clientId => $composableBuilder(
+    column: $table.clientId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get queuedAt => $composableBuilder(
+    column: $table.queuedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get attemptCount => $composableBuilder(
+    column: $table.attemptCount,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get lastError => $composableBuilder(
+    column: $table.lastError,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$InspectionSyncQueueTableAnnotationComposer
+    extends Composer<_$AppDatabase, $InspectionSyncQueueTable> {
+  $$InspectionSyncQueueTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get clientId =>
+      $composableBuilder(column: $table.clientId, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get queuedAt =>
+      $composableBuilder(column: $table.queuedAt, builder: (column) => column);
+
+  GeneratedColumn<int> get attemptCount => $composableBuilder(
+    column: $table.attemptCount,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get lastError =>
+      $composableBuilder(column: $table.lastError, builder: (column) => column);
+}
+
+class $$InspectionSyncQueueTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $InspectionSyncQueueTable,
+          InspectionSyncQueueData,
+          $$InspectionSyncQueueTableFilterComposer,
+          $$InspectionSyncQueueTableOrderingComposer,
+          $$InspectionSyncQueueTableAnnotationComposer,
+          $$InspectionSyncQueueTableCreateCompanionBuilder,
+          $$InspectionSyncQueueTableUpdateCompanionBuilder,
+          (
+            InspectionSyncQueueData,
+            BaseReferences<
+              _$AppDatabase,
+              $InspectionSyncQueueTable,
+              InspectionSyncQueueData
+            >,
+          ),
+          InspectionSyncQueueData,
+          PrefetchHooks Function()
+        > {
+  $$InspectionSyncQueueTableTableManager(
+    _$AppDatabase db,
+    $InspectionSyncQueueTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$InspectionSyncQueueTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$InspectionSyncQueueTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$InspectionSyncQueueTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> clientId = const Value.absent(),
+                Value<DateTime> queuedAt = const Value.absent(),
+                Value<int> attemptCount = const Value.absent(),
+                Value<String?> lastError = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => InspectionSyncQueueCompanion(
+                clientId: clientId,
+                queuedAt: queuedAt,
+                attemptCount: attemptCount,
+                lastError: lastError,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String clientId,
+                required DateTime queuedAt,
+                Value<int> attemptCount = const Value.absent(),
+                Value<String?> lastError = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => InspectionSyncQueueCompanion.insert(
+                clientId: clientId,
+                queuedAt: queuedAt,
+                attemptCount: attemptCount,
+                lastError: lastError,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<
+                    $InspectionSyncQueueTable,
+                    InspectionSyncQueueData
+                  >(table),
+                  BaseReferences<
+                    _$AppDatabase,
+                    $InspectionSyncQueueTable,
+                    InspectionSyncQueueData
+                  >(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$InspectionSyncQueueTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $InspectionSyncQueueTable,
+      InspectionSyncQueueData,
+      $$InspectionSyncQueueTableFilterComposer,
+      $$InspectionSyncQueueTableOrderingComposer,
+      $$InspectionSyncQueueTableAnnotationComposer,
+      $$InspectionSyncQueueTableCreateCompanionBuilder,
+      $$InspectionSyncQueueTableUpdateCompanionBuilder,
+      (
+        InspectionSyncQueueData,
+        BaseReferences<
+          _$AppDatabase,
+          $InspectionSyncQueueTable,
+          InspectionSyncQueueData
+        >,
+      ),
+      InspectionSyncQueueData,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -2348,4 +2896,6 @@ class $AppDatabaseManager {
       $$WorkOrdersTableTableManager(_db, _db.workOrders);
   $$InspectionsTableTableManager get inspections =>
       $$InspectionsTableTableManager(_db, _db.inspections);
+  $$InspectionSyncQueueTableTableManager get inspectionSyncQueue =>
+      $$InspectionSyncQueueTableTableManager(_db, _db.inspectionSyncQueue);
 }

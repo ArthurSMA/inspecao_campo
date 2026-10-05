@@ -1,6 +1,6 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import 'core/network/dio_client.dart';
@@ -11,6 +11,10 @@ import 'features/auth/presentation/bloc/auth_event.dart';
 import 'features/auth/presentation/bloc/auth_state.dart';
 import 'features/auth/presentation/pages/login_page.dart';
 import 'features/home/presentation/pages/home_page.dart';
+import 'features/work_orders/data/database/work_orders_database.dart';
+import 'features/work_orders/data/datasources/inspection_remote_data_source.dart';
+import 'features/work_orders/data/repositories/inspection_repository_impl.dart';
+import 'features/work_orders/presentation/bloc/inspection_bloc.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -39,6 +43,16 @@ class MyApp extends StatelessWidget {
               ),
             ),
           )..add(CheckAuthSessionEvent()),
+        ),
+        BlocProvider<InspectionBloc>(
+          create: (context) => InspectionBloc(
+            InspectionRepositoryImpl(
+              remoteDataSource: InspectionRemoteDataSourceImpl(
+                DioClient().instance,
+              ),
+              database: AppDatabase(),
+            ),
+          ),
         ),
       ],
       child: BlocListener<AuthBloc, AuthState>(

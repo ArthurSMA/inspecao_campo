@@ -79,9 +79,8 @@ class _HomePageState extends State<HomePage> {
       context.read<WorkOrdersBloc>().add(FetchWorkOrdersEvent());
       setState(() => _pendingCount = _loadPendingCount());
     } catch (_) {
-      if (!context.mounted) {
-        return;
-      }
+      if (!context.mounted) return;
+
       setState(() => _isConnected = false);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Não foi possível sincronizar os dados.')),

@@ -30,3 +30,12 @@ class InspectionErrorState extends InspectionState {
   @override
   List<Object?> get props => [message];
 }
+
+class InspectionActionCompletedState extends InspectionState {
+  const InspectionActionCompletedState(this.message);
+
+  final String message;
+
+  @override
+  List<Object?> get props => [message];
+}
