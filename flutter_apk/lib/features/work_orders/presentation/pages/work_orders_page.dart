@@ -144,6 +144,38 @@ class _WorkOrdersPageState extends State<WorkOrdersPage> {
                         },
                         child: state is WorkOrdersLoadingState
                             ? const Center(child: CircularProgressIndicator())
+                            : state is WorkOrdersErrorState
+                            ? Center(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(24),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(
+                                        Icons.error_outline_rounded,
+                                        color: AppColors.danger,
+                                        size: 40,
+                                      ),
+                                      const SizedBox(height: 12),
+                                      Text(
+                                        state.message,
+                                        textAlign: TextAlign.center,
+                                        style: const TextStyle(
+                                          color: AppColors.darkText,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 12),
+                                      FilledButton.icon(
+                                        onPressed: () => context
+                                            .read<WorkOrdersBloc>()
+                                            .add(FetchWorkOrdersEvent()),
+                                        icon: const Icon(Icons.refresh_rounded),
+                                        label: const Text('Tentar novamente'),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              )
                             : loadedOrders.isEmpty
                             ? const Center(
                                 child: Text(

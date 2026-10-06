@@ -64,16 +64,30 @@ class MyApp extends StatelessWidget {
             );
           }
         },
-        child: MaterialApp(
-          navigatorKey: _navigatorKey,
-          title: 'Inspeção de Campo',
-          debugShowCheckedModeBanner: false,
-          theme: ThemeData(useMaterial3: true),
-          initialRoute: '/login',
-          routes: {
-            '/login': (_) => const LoginPage(),
-            '/home': (_) => const HomePage(),
-          },
+        child: Builder(
+          builder: (context) => MaterialApp(
+            navigatorKey: _navigatorKey,
+            title: 'Inspeção de Campo',
+            debugShowCheckedModeBanner: false,
+            theme: ThemeData(useMaterial3: true),
+            initialRoute: '/login',
+            routes: {'/login': (_) => const LoginPage()},
+            onGenerateRoute: (settings) {
+              if (settings.name != '/home') {
+                return null;
+              }
+
+              final isAuthenticated =
+                  context.read<AuthBloc>().state is AuthSuccessState;
+              return MaterialPageRoute<void>(
+                settings: RouteSettings(
+                  name: isAuthenticated ? '/home' : '/login',
+                ),
+                builder: (_) =>
+                    isAuthenticated ? const HomePage() : const LoginPage(),
+              );
+            },
+          ),
         ),
       ),
     );

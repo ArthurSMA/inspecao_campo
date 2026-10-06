@@ -1,17 +1,58 @@
-# inpecao_campo
+# Inspecao de Campo
+Aplicativo Flutter de inspeção de campo com persistência local offline-first destinado a registrar as ordens de serviço.
 
-Aplicativo Flutter de inspeção de campo com persistência local offline-first.
+Estados das ordens de serviço:
+- Em andamento 
+- Continuar inspeção
+- Concluir inspeção
+
+## Como iniciar
+
+### Necessário
+Ter Flutter(Dart) configurado
+
+Atualizar os pacotes:
+```bash
+flutter pub get 
+```
+
+Rodar a aplicação
+```bash
+flutter run
+```
+
+## Arquitetura do projeto
+
+```Plaintext
+lib/
+├── core/
+│   ├── network/
+|   ├── presentation/
+│   └── utils/
+└── features/
+    ├── auth/
+    │   ├── data/ (repositórios e fontes de dados)
+    │   ├── domain/ (regras de negócio e modelos)
+    │   └── presentation/ (telas e widgets)
+    ├── home/
+    │    ├── data/
+    │    ├── domain/
+    │    └── presentation/
+    ├── map/
+    │    ├── data/
+    │    ├── domain/
+    │    └── presentation/
+    └── work_orders/
+        ├── data/
+        ├── domain/
+        └── presentation/
+```
 
 ## Ordens de serviço no mapa
 
-Administradores podem criar ordens de serviço pelo mapa. Essas ordens são
-persistidas no banco local Drift e permanecem disponíveis no dispositivo.
-O contrato da API atual só define `GET /work-orders`; não há endpoint de criação
-de ordens. Por isso, a sincronização não envia ordens criadas localmente ao
-servidor, e elas não são compartilhadas entre dispositivos.
-
-Quando a API disponibilizar uma operação de criação, o envio poderá ser
-integrado à fila de sincronização existente sem alterar a persistência local.
+Administradores podem criar ordens de serviço pelo mapa.
+Funcionários técnicos podem efetuar as ordens de seviço já existentes na aplicação.
+As ordens de serviço são persistidas para o funcionamento offline da aplicação.
 
 ## Desenvolvimento
 

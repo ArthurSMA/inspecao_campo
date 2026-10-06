@@ -64,10 +64,14 @@ class _InspectionFormPageState extends State<InspectionFormPage> {
   }
 
   Future<void> _loadCurrentLocation() async {
+    String? fallbackMessage;
+
     try {
       final serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
         _position = _fallbackPosition();
+        fallbackMessage =
+            'GPS desativado. Usando as coordenadas da ordem de serviço.';
       } else {
         var permission = await Geolocator.checkPermission();
         if (permission == LocationPermission.denied ||
@@ -78,6 +82,7 @@ class _InspectionFormPageState extends State<InspectionFormPage> {
         if (permission == LocationPermission.denied ||
             permission == LocationPermission.deniedForever) {
           _position = _fallbackPosition();
+          fallbackMessage = 'Permissão de localização negada. Usando as coordenadas da ordem de serviço.';
         } else {
           _position = await Geolocator.getCurrentPosition(
             locationSettings: const LocationSettings(
@@ -89,10 +94,14 @@ class _InspectionFormPageState extends State<InspectionFormPage> {
       }
     } catch (_) {
       _position = _fallbackPosition();
+      fallbackMessage = 'Não foi possível capturar o GPS. Usando as coordenadas da ordem de serviço.';
     }
 
     if (mounted) {
       setState(() => _isLoadingLocation = false);
+      if (fallbackMessage != null) {
+        _showMessage(fallbackMessage);
+      }
     }
   }
 
@@ -368,7 +377,7 @@ class _InspectionFormPageState extends State<InspectionFormPage> {
                   children: [
                     Expanded(
                       child: OutlinedButton(
-                        onPressed: _isSubmitting
+                        onPressed: _isSubmitting || _isLoadingLocation
                             ? null
                             : () => _submitInspection(asDraft: true),
                         child: const Text('Salvar rascunho'),
@@ -377,7 +386,7 @@ class _InspectionFormPageState extends State<InspectionFormPage> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: FilledButton(
-                        onPressed: _isSubmitting
+                        onPressed: _isSubmitting || _isLoadingLocation
                             ? null
                             : () => _submitInspection(asDraft: false),
                         child: Text(_isSubmitting ? 'Enviando...' : 'Concluir'),
