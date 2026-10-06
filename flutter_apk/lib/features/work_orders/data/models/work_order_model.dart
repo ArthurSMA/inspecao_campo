@@ -1,4 +1,4 @@
-import 'package:inpecao_campo/core/utils/geo_utils.dart';
+import 'package:inspecao_campo/core/utils/geo_utils.dart';
 
 import '../../domain/entities/work_order.dart';
 

@@ -1,6 +1,6 @@
 import 'package:geolocator/geolocator.dart';
 
-import 'package:inpecao_campo/core/utils/geo_utils.dart';
+import 'package:inspecao_campo/core/utils/geo_utils.dart';
 
 enum InspectionLocationStatus { success, permissionDenied, unavailable }
 

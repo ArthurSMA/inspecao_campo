@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:inpecao_campo/core/network/dio_client.dart';
+import 'package:inspecao_campo/core/network/dio_client.dart';
 
 import '../../domain/errors/auth_unauthorized_exception.dart';
 import '../models/auth_session_model.dart';

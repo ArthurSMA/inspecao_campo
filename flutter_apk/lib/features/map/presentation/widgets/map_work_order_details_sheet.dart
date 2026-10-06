@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import 'package:inpecao_campo/core/utils/colors.dart';
-import 'package:inpecao_campo/features/work_orders/domain/entities/work_order.dart';
+import 'package:inspecao_campo/core/utils/colors.dart';
+import 'package:inspecao_campo/features/work_orders/domain/entities/work_order.dart';
 
 class MapWorkOrderDetailsSheet extends StatelessWidget {
   const MapWorkOrderDetailsSheet({

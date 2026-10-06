@@ -3,8 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:inpecao_campo/features/home/presentation/pages/home_page.dart';
-import 'package:inpecao_campo/main.dart';
+import 'package:inspecao_campo/features/home/presentation/pages/home_page.dart';
+import 'package:inspecao_campo/main.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'package:inpecao_campo/core/utils/colors.dart';
-import 'package:inpecao_campo/presentation/components/custom_button.dart';
-import 'package:inpecao_campo/presentation/components/email_input_field.dart';
-import 'package:inpecao_campo/presentation/components/password_input_field.dart';
+import 'package:inspecao_campo/core/utils/colors.dart';
+import 'package:inspecao_campo/presentation/components/custom_button.dart';
+import 'package:inspecao_campo/presentation/components/email_input_field.dart';
+import 'package:inspecao_campo/presentation/components/password_input_field.dart';
 
 import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';

@@ -2,10 +2,10 @@ import 'dart:async';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:inpecao_campo/features/work_orders/data/services/network_connectivity_service.dart';
-import 'package:inpecao_campo/features/work_orders/domain/entities/inspection.dart';
-import 'package:inpecao_campo/features/work_orders/domain/repositories/inspection_repository.dart';
-import 'package:inpecao_campo/features/work_orders/presentation/bloc/inspection_bloc.dart';
+import 'package:inspecao_campo/features/work_orders/data/services/network_connectivity_service.dart';
+import 'package:inspecao_campo/features/work_orders/domain/entities/inspection.dart';
+import 'package:inspecao_campo/features/work_orders/domain/repositories/inspection_repository.dart';
+import 'package:inspecao_campo/features/work_orders/presentation/bloc/inspection_bloc.dart';
 
 void main() {
   test('syncs pending inspections when connectivity is restored', () async {

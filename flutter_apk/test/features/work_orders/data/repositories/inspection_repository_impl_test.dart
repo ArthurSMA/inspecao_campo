@@ -4,12 +4,12 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:inpecao_campo/features/work_orders/data/database/work_orders_database.dart';
-import 'package:inpecao_campo/features/work_orders/data/datasources/inspection_remote_data_source.dart';
-import 'package:inpecao_campo/features/work_orders/data/models/inspection_model.dart';
-import 'package:inpecao_campo/features/work_orders/data/repositories/inspection_repository_impl.dart';
-import 'package:inpecao_campo/features/work_orders/data/services/network_connectivity_service.dart';
-import 'package:inpecao_campo/features/work_orders/domain/entities/inspection.dart';
+import 'package:inspecao_campo/features/work_orders/data/database/work_orders_database.dart';
+import 'package:inspecao_campo/features/work_orders/data/datasources/inspection_remote_data_source.dart';
+import 'package:inspecao_campo/features/work_orders/data/models/inspection_model.dart';
+import 'package:inspecao_campo/features/work_orders/data/repositories/inspection_repository_impl.dart';
+import 'package:inspecao_campo/features/work_orders/data/services/network_connectivity_service.dart';
+import 'package:inspecao_campo/features/work_orders/domain/entities/inspection.dart';
 
 void main() {
   late AppDatabase database;

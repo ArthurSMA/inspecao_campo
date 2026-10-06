@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
-import 'package:inpecao_campo/core/utils/colors.dart';
-import 'package:inpecao_campo/features/work_orders/domain/entities/work_order.dart';
+import 'package:inspecao_campo/core/utils/colors.dart';
+import 'package:inspecao_campo/features/work_orders/domain/entities/work_order.dart';
 
 class WorkOrdersMapView extends StatelessWidget {
   const WorkOrdersMapView({
@@ -16,6 +16,7 @@ class WorkOrdersMapView extends StatelessWidget {
     required this.routePoints,
     required this.routeDistance,
     required this.routeDuration,
+    required this.isRoadRoute,
     required this.isLoadingLocation,
     required this.isLoadingOrders,
     required this.isAdmin,
@@ -34,6 +35,7 @@ class WorkOrdersMapView extends StatelessWidget {
   final List<LatLng> routePoints;
   final String? routeDistance;
   final String? routeDuration;
+  final bool isRoadRoute;
   final bool isLoadingLocation;
   final bool isLoadingOrders;
   final bool isAdmin;
@@ -73,7 +75,7 @@ class WorkOrdersMapView extends StatelessWidget {
                 TextSourceAttribution('OpenStreetMap contributors'),
               ],
             ),
-            if (routePoints.length == 2)
+            if (routePoints.length >= 2)
               PolylineLayer(
                 polylines: [
                   Polyline(
@@ -169,7 +171,9 @@ class WorkOrdersMapView extends StatelessWidget {
               child: Padding(
                 padding: const EdgeInsets.all(12),
                 child: Text(
-                  'Rota direta: $distance • $routeDuration a 30 km/h',
+                  isRoadRoute
+                      ? 'Rota viária: $distance • $routeDuration'
+                      : 'Rota direta: $distance • $routeDuration a 30 km/h',
                   style: const TextStyle(fontWeight: FontWeight.w700),
                 ),
               ),

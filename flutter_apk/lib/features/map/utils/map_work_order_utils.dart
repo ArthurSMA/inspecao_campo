@@ -1,6 +1,6 @@
 import 'package:latlong2/latlong.dart';
 
-import 'package:inpecao_campo/features/work_orders/domain/entities/work_order.dart';
+import '../../work_orders/domain/entities/work_order.dart';
 
 class MapWorkOrderUtils {
   const MapWorkOrderUtils._();

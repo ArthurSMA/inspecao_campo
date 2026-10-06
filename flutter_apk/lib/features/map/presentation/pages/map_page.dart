@@ -7,17 +7,18 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 
-import 'package:inpecao_campo/core/presentation/widgets/app_header.dart';
-import 'package:inpecao_campo/core/presentation/widgets/bottom_nav_bar.dart';
-import 'package:inpecao_campo/core/utils/colors.dart';
-import 'package:inpecao_campo/features/auth/presentation/bloc/auth_bloc.dart';
-import 'package:inpecao_campo/features/auth/presentation/bloc/auth_event.dart';
-import 'package:inpecao_campo/features/auth/presentation/bloc/auth_state.dart';
-import 'package:inpecao_campo/features/work_orders/domain/entities/work_order.dart';
-import 'package:inpecao_campo/features/work_orders/presentation/bloc/work_orders_bloc.dart';
-import 'package:inpecao_campo/features/work_orders/presentation/bloc/work_orders_event.dart';
-import 'package:inpecao_campo/features/work_orders/presentation/bloc/work_orders_state.dart';
-import 'package:inpecao_campo/features/work_orders/presentation/pages/work_orders_page.dart';
+import 'package:inspecao_campo/core/network/osrm_service.dart';
+import 'package:inspecao_campo/core/presentation/widgets/app_header.dart';
+import 'package:inspecao_campo/core/presentation/widgets/bottom_nav_bar.dart';
+import 'package:inspecao_campo/core/utils/colors.dart';
+import 'package:inspecao_campo/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:inspecao_campo/features/auth/presentation/bloc/auth_event.dart';
+import 'package:inspecao_campo/features/auth/presentation/bloc/auth_state.dart';
+import 'package:inspecao_campo/features/work_orders/domain/entities/work_order.dart';
+import 'package:inspecao_campo/features/work_orders/presentation/bloc/work_orders_bloc.dart';
+import 'package:inspecao_campo/features/work_orders/presentation/bloc/work_orders_event.dart';
+import 'package:inspecao_campo/features/work_orders/presentation/bloc/work_orders_state.dart';
+import 'package:inspecao_campo/features/work_orders/presentation/pages/work_orders_page.dart';
 
 import '../../utils/map_work_order_utils.dart';
 import '../widgets/map_priority_filter.dart';
@@ -26,9 +27,11 @@ import '../widgets/map_work_order_dialog.dart';
 import '../widgets/work_orders_map_view.dart';
 
 class MapPage extends StatefulWidget {
-  const MapPage({super.key});
+  const MapPage({super.key, this.osrmService});
 
   static const LatLng joaoPessoaCenter = LatLng(-7.1195, -34.8450);
+
+  final OsrmService? osrmService;
 
   @override
   State<MapPage> createState() => _MapPageState();
@@ -37,18 +40,23 @@ class MapPage extends StatefulWidget {
 class _MapPageState extends State<MapPage> {
   final MapController _mapController = MapController();
   final TextEditingController _searchController = TextEditingController();
+  late final OsrmService _osrmService;
+  late final bool _ownsOsrmService;
 
   LatLng? _userLocation;
   List<LatLng> _routePoints = const [];
   String _priorityFilter = 'all';
   String? _routeDistance;
   String? _routeDuration;
+  bool _isRoadRoute = false;
   bool _isLoadingLocation = true;
   bool _mapReady = false;
 
   @override
   void initState() {
     super.initState();
+    _ownsOsrmService = widget.osrmService == null;
+    _osrmService = widget.osrmService ?? OsrmService();
     unawaited(_loadCurrentLocation(showFeedback: true));
   }
 
@@ -244,6 +252,26 @@ class _MapPageState extends State<MapPage> {
     }
 
     final destination = LatLng(order.latitude, order.longitude);
+    final route = await _osrmService.getRoute(
+      origin: origin,
+      destination: destination,
+    );
+    if (!mounted) {
+      return;
+    }
+
+    if (route != null) {
+      setState(() {
+        _routePoints = route.points;
+        _routeDistance =
+            '${(route.distanceMeters / 1000).toStringAsFixed(1)} km';
+        _routeDuration = _formatDuration(route.durationSeconds);
+        _isRoadRoute = true;
+      });
+      _fitRouteCamera();
+      return;
+    }
+
     final distanceMeters = MapWorkOrderUtils.distanceInMeters(
       origin,
       destination,
@@ -254,7 +282,20 @@ class _MapPageState extends State<MapPage> {
       _routePoints = [origin!, destination];
       _routeDistance = '${(distanceMeters / 1000).toStringAsFixed(1)} km';
       _routeDuration = '$estimatedMinutes min';
+      _isRoadRoute = false;
     });
+    _fitRouteCamera();
+  }
+
+  String _formatDuration(double durationSeconds) {
+    final duration = Duration(seconds: durationSeconds.round());
+    if (duration.inHours > 0) {
+      return '${duration.inHours} h ${duration.inMinutes.remainder(60)} min';
+    }
+    return '${duration.inMinutes} min';
+  }
+
+  void _fitRouteCamera() {
     if (_mapReady) {
       _mapController.fitCamera(
         CameraFit.coordinates(
@@ -305,6 +346,9 @@ class _MapPageState extends State<MapPage> {
   void dispose() {
     _mapController.dispose();
     _searchController.dispose();
+    if (_ownsOsrmService) {
+      _osrmService.close();
+    }
     super.dispose();
   }
 
@@ -399,6 +443,7 @@ class _MapPageState extends State<MapPage> {
                       routePoints: _routePoints,
                       routeDistance: _routeDistance,
                       routeDuration: _routeDuration,
+                      isRoadRoute: _isRoadRoute,
                       isLoadingLocation: _isLoadingLocation,
                       isLoadingOrders: state is WorkOrdersLoadingState,
                       isAdmin: isAdmin,

@@ -1,4 +1,4 @@
-package com.example.inpecao_campo
+package com.example.inspecao_campo
 
 import io.flutter.embedding.android.FlutterActivity
 

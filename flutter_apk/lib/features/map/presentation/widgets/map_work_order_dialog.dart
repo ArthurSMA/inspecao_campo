@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
 
-import 'package:inpecao_campo/core/utils/colors.dart';
+import 'package:inspecao_campo/core/utils/colors.dart';
 
 class MapWorkOrderDialog extends StatefulWidget {
   const MapWorkOrderDialog({super.key, required this.location});

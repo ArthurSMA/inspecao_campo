@@ -1,21 +1,25 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:inpecao_campo/features/auth/domain/entities/user.dart';
-import 'package:inpecao_campo/features/auth/domain/repositories/auth_repository.dart';
-import 'package:inpecao_campo/features/auth/presentation/bloc/auth_bloc.dart';
-import 'package:inpecao_campo/features/auth/presentation/bloc/auth_event.dart';
-import 'package:inpecao_campo/features/auth/presentation/bloc/auth_state.dart';
-import 'package:inpecao_campo/features/map/presentation/pages/map_page.dart';
-import 'package:inpecao_campo/features/work_orders/domain/entities/work_order.dart';
-import 'package:inpecao_campo/features/work_orders/domain/repositories/work_orders_repository.dart';
-import 'package:inpecao_campo/features/work_orders/domain/usecases/get_work_orders.dart';
-import 'package:inpecao_campo/features/work_orders/presentation/bloc/work_orders_bloc.dart';
-import 'package:inpecao_campo/features/work_orders/presentation/bloc/work_orders_event.dart';
-import 'package:inpecao_campo/features/work_orders/presentation/bloc/work_orders_state.dart';
+import 'package:http/http.dart' as http;
+import 'package:inspecao_campo/core/network/osrm_service.dart';
+import 'package:inspecao_campo/features/auth/domain/entities/user.dart';
+import 'package:inspecao_campo/features/auth/domain/repositories/auth_repository.dart';
+import 'package:inspecao_campo/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:inspecao_campo/features/auth/presentation/bloc/auth_event.dart';
+import 'package:inspecao_campo/features/auth/presentation/bloc/auth_state.dart';
+import 'package:inspecao_campo/features/map/presentation/pages/map_page.dart';
+import 'package:inspecao_campo/features/work_orders/domain/entities/work_order.dart';
+import 'package:inspecao_campo/features/work_orders/domain/repositories/work_orders_repository.dart';
+import 'package:inspecao_campo/features/work_orders/domain/usecases/get_work_orders.dart';
+import 'package:inspecao_campo/features/work_orders/presentation/bloc/work_orders_bloc.dart';
+import 'package:inspecao_campo/features/work_orders/presentation/bloc/work_orders_event.dart';
+import 'package:inspecao_campo/features/work_orders/presentation/bloc/work_orders_state.dart';
 
 const _geolocatorChannel = MethodChannel('flutter.baseflow.com/geolocator');
 
@@ -150,10 +154,65 @@ void main() {
       expect(find.byType(PolylineLayer), findsOneWidget);
       expect(find.textContaining('Rota direta:'), findsOneWidget);
       expect(find.text('Mais próxima: OS-001'), findsOneWidget);
+      final routeLayer = tester.widget<PolylineLayer>(
+        find.byType(PolylineLayer),
+      );
+      expect(routeLayer.polylines.single.points, hasLength(2));
 
       await harness.dispose(tester);
     },
   );
+
+  testWidgets('draws the detailed street route returned by OSRM', (
+    tester,
+  ) async {
+    final order = _workOrder(
+      id: 'wo-1',
+      code: 'OS-001',
+      title: 'Inspecionar poste',
+      latitude: -7.11,
+      longitude: -34.84,
+    );
+    final harness = await _mountMap(
+      tester,
+      FakeGeolocatorChannel(permission: 2),
+      workOrders: [order],
+      osrmClient: _FakeHttpClient(
+        http.Response(
+          jsonEncode({
+            'code': 'Ok',
+            'routes': [
+              {
+                'distance': 3200,
+                'duration': 600,
+                'geometry': {
+                  'coordinates': [
+                    [-34.845, -7.1195],
+                    [-34.843, -7.115],
+                    [-34.84, -7.11],
+                  ],
+                },
+              },
+            ],
+          }),
+          200,
+        ),
+      ),
+    );
+
+    await tester.tap(find.byIcon(Icons.location_on_rounded));
+    await tester.pump(const Duration(milliseconds: 500));
+    await tester.ensureVisible(find.text('Traçar Rota'));
+    await tester.pump(const Duration(milliseconds: 500));
+    await tester.tap(find.text('Traçar Rota'));
+    await tester.pump(const Duration(milliseconds: 500));
+
+    expect(find.textContaining('Rota viária: 3.2 km • 10 min'), findsOneWidget);
+    final routeLayer = tester.widget<PolylineLayer>(find.byType(PolylineLayer));
+    expect(routeLayer.polylines.single.points, hasLength(3));
+
+    await harness.dispose(tester);
+  });
 }
 
 Future<_MapHarness> _mountMap(
@@ -161,6 +220,7 @@ Future<_MapHarness> _mountMap(
   FakeGeolocatorChannel geolocator, {
   String role = 'field_technician',
   List<WorkOrder> workOrders = const [],
+  http.Client? osrmClient,
 }) async {
   tester.view.physicalSize = const Size(800, 900);
   tester.view.devicePixelRatio = 1;
@@ -170,6 +230,9 @@ Future<_MapHarness> _mountMap(
       .setMockMethodCallHandler(_geolocatorChannel, geolocator.handle);
 
   final repository = FakeWorkOrdersRepository(workOrders);
+  final osrmService = OsrmService(
+    client: osrmClient ?? _FakeHttpClient(null, error: true),
+  );
   final workOrdersBloc = WorkOrdersBloc(GetWorkOrdersUseCase(repository));
   final workOrdersLoaded = workOrdersBloc.stream.firstWhere(
     (state) => state is WorkOrdersLoadedState,
@@ -190,29 +253,56 @@ Future<_MapHarness> _mountMap(
         BlocProvider<AuthBloc>.value(value: authBloc),
         BlocProvider<WorkOrdersBloc>.value(value: workOrdersBloc),
       ],
-      child: const MaterialApp(home: MapPage()),
+      child: MaterialApp(home: MapPage(osrmService: osrmService)),
     ),
   );
   await tester.pump(const Duration(milliseconds: 500));
 
-  return _MapHarness(authBloc, workOrdersBloc, repository);
+  return _MapHarness(authBloc, workOrdersBloc, repository, osrmService);
 }
 
 class _MapHarness {
-  const _MapHarness(this.authBloc, this.workOrdersBloc, this.repository);
+  const _MapHarness(
+    this.authBloc,
+    this.workOrdersBloc,
+    this.repository,
+    this.osrmService,
+  );
 
   final AuthBloc authBloc;
   final WorkOrdersBloc workOrdersBloc;
   final FakeWorkOrdersRepository repository;
+  final OsrmService osrmService;
 
   Future<void> dispose(WidgetTester tester) async {
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.runAsync(() async {
       await authBloc.close();
       await workOrdersBloc.close();
+      osrmService.close();
     });
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(_geolocatorChannel, null);
+  }
+}
+
+class _FakeHttpClient extends http.BaseClient {
+  _FakeHttpClient(this.response, {this.error = false});
+
+  final http.Response? response;
+  final bool error;
+
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    if (error) {
+      throw http.ClientException('OSRM unavailable');
+    }
+    final value = response!;
+    return http.StreamedResponse(
+      Stream.value(utf8.encode(value.body)),
+      value.statusCode,
+      headers: value.headers,
+    );
   }
 }
 

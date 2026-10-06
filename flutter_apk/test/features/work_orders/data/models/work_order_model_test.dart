@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:inpecao_campo/features/work_orders/data/models/work_order_model.dart';
+import 'package:inspecao_campo/features/work_orders/data/models/work_order_model.dart';
 
 void main() {
   test('maps work order fields from the API response', () {

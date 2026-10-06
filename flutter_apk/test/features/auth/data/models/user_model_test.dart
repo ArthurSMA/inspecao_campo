@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:inpecao_campo/features/auth/data/models/auth_session_model.dart';
-import 'package:inpecao_campo/features/auth/data/models/user_model.dart';
+import 'package:inspecao_campo/features/auth/data/models/auth_session_model.dart';
+import 'package:inspecao_campo/features/auth/data/models/user_model.dart';
 
 void main() {
   const userJson = {

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'package:inpecao_campo/core/utils/colors.dart';
-import 'package:inpecao_campo/features/work_orders/domain/entities/inspection.dart';
-import 'package:inpecao_campo/features/work_orders/presentation/bloc/inspection_bloc.dart';
-import 'package:inpecao_campo/features/work_orders/presentation/bloc/inspection_event.dart';
-import 'package:inpecao_campo/features/work_orders/presentation/bloc/inspection_state.dart';
+import 'package:inspecao_campo/core/utils/colors.dart';
+import 'package:inspecao_campo/features/work_orders/domain/entities/inspection.dart';
+import 'package:inspecao_campo/features/work_orders/presentation/bloc/inspection_bloc.dart';
+import 'package:inspecao_campo/features/work_orders/presentation/bloc/inspection_event.dart';
+import 'package:inspecao_campo/features/work_orders/presentation/bloc/inspection_state.dart';
 
 class InspectionHistoryPage extends StatefulWidget {
   const InspectionHistoryPage({super.key});

@@ -1,21 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'package:inpecao_campo/core/network/dio_client.dart';
-import 'package:inpecao_campo/core/presentation/widgets/app_header.dart';
-import 'package:inpecao_campo/core/presentation/widgets/bottom_nav_bar.dart';
-import 'package:inpecao_campo/core/utils/colors.dart';
-import 'package:inpecao_campo/features/auth/presentation/bloc/auth_bloc.dart';
-import 'package:inpecao_campo/features/auth/presentation/bloc/auth_event.dart';
-import 'package:inpecao_campo/features/auth/presentation/bloc/auth_state.dart';
-import 'package:inpecao_campo/features/home/presentation/pages/home_page.dart';
-import 'package:inpecao_campo/features/map/presentation/pages/map_page.dart';
-import 'package:inpecao_campo/features/work_orders/data/database/work_orders_database.dart';
-import 'package:inpecao_campo/features/work_orders/data/datasources/work_orders_remote_data_source.dart';
-import 'package:inpecao_campo/features/work_orders/data/repositories/work_orders_repository_impl.dart';
-import 'package:inpecao_campo/features/work_orders/domain/entities/work_order.dart'
+import 'package:inspecao_campo/core/network/dio_client.dart';
+import 'package:inspecao_campo/core/presentation/widgets/app_header.dart';
+import 'package:inspecao_campo/core/presentation/widgets/bottom_nav_bar.dart';
+import 'package:inspecao_campo/core/utils/colors.dart';
+import 'package:inspecao_campo/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:inspecao_campo/features/auth/presentation/bloc/auth_event.dart';
+import 'package:inspecao_campo/features/auth/presentation/bloc/auth_state.dart';
+import 'package:inspecao_campo/features/home/presentation/pages/home_page.dart';
+import 'package:inspecao_campo/features/map/presentation/pages/map_page.dart';
+import 'package:inspecao_campo/features/work_orders/data/database/work_orders_database.dart';
+import 'package:inspecao_campo/features/work_orders/data/datasources/work_orders_remote_data_source.dart';
+import 'package:inspecao_campo/features/work_orders/data/repositories/work_orders_repository_impl.dart';
+import 'package:inspecao_campo/features/work_orders/domain/entities/work_order.dart'
     as domain;
-import 'package:inpecao_campo/features/work_orders/domain/usecases/get_work_orders.dart';
+import 'package:inspecao_campo/features/work_orders/domain/usecases/get_work_orders.dart';
 
 import '../bloc/work_orders_bloc.dart';
 import '../bloc/work_orders_event.dart';

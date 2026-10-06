@@ -3,8 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:inpecao_campo/core/network/dio_client.dart';
-import 'package:inpecao_campo/features/auth/data/datasources/auth_remote_data_source.dart';
+import 'package:inspecao_campo/core/network/dio_client.dart';
+import 'package:inspecao_campo/features/auth/data/datasources/auth_remote_data_source.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();

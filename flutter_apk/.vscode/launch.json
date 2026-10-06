@@ -6,18 +6,18 @@
     "configurations": [
     
         {
-            "name": "inpecao_campo",
+            "name": "inspecao_campo",
             "request": "launch",
             "type": "dart"
         },
         {
-            "name": "inpecao_campo (profile mode)",
+            "name": "inspecao_campo (profile mode)",
             "request": "launch",
             "type": "dart",
             "flutterMode": "profile"
         },
         {
-            "name": "inpecao_campo (release mode)",
+            "name": "inspecao_campo (release mode)",
             "request": "launch",
             "type": "dart",
             "flutterMode": "release"

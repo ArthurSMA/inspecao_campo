@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'package:inpecao_campo/core/utils/colors.dart';
-import 'package:inpecao_campo/core/utils/geo_utils.dart';
-import 'package:inpecao_campo/features/work_orders/domain/entities/work_order.dart';
-import 'package:inpecao_campo/features/work_orders/presentation/bloc/inspection_bloc.dart';
-import 'package:inpecao_campo/features/work_orders/presentation/pages/inspection_form_page.dart';
+import 'package:inspecao_campo/core/utils/colors.dart';
+import 'package:inspecao_campo/core/utils/geo_utils.dart';
+import 'package:inspecao_campo/features/work_orders/domain/entities/work_order.dart';
+import 'package:inspecao_campo/features/work_orders/presentation/bloc/inspection_bloc.dart';
+import 'package:inspecao_campo/features/work_orders/presentation/pages/inspection_form_page.dart';
 
 class WorkOrderCard extends StatefulWidget {
   const WorkOrderCard({super.key, required this.order});

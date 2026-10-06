@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:inpecao_campo/core/utils/colors.dart';
+import 'package:inspecao_campo/core/utils/colors.dart';
 
 class MapPriorityFilter extends StatelessWidget {
   const MapPriorityFilter({

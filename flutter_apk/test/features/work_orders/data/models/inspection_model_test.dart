@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:inpecao_campo/features/work_orders/data/models/inspection_model.dart';
-import 'package:inpecao_campo/features/work_orders/domain/entities/inspection.dart';
+import 'package:inspecao_campo/features/work_orders/data/models/inspection_model.dart';
+import 'package:inspecao_campo/features/work_orders/domain/entities/inspection.dart';
 
 void main() {
   group('InspectionModel', () {

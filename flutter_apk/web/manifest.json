@@ -1,6 +1,6 @@
 {
-    "name": "inpecao_campo",
-    "short_name": "inpecao_campo",
+    "name": "inspecao_campo",
+    "short_name": "inspecao_campo",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

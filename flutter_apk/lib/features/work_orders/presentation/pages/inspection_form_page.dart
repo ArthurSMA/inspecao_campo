@@ -8,12 +8,12 @@ import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
-import 'package:inpecao_campo/core/utils/colors.dart';
-import 'package:inpecao_campo/features/work_orders/domain/entities/inspection.dart';
-import 'package:inpecao_campo/features/work_orders/domain/entities/work_order.dart';
-import 'package:inpecao_campo/features/work_orders/presentation/bloc/inspection_bloc.dart';
-import 'package:inpecao_campo/features/work_orders/presentation/bloc/inspection_event.dart';
-import 'package:inpecao_campo/features/work_orders/presentation/bloc/inspection_state.dart';
+import 'package:inspecao_campo/core/utils/colors.dart';
+import 'package:inspecao_campo/features/work_orders/domain/entities/inspection.dart';
+import 'package:inspecao_campo/features/work_orders/domain/entities/work_order.dart';
+import 'package:inspecao_campo/features/work_orders/presentation/bloc/inspection_bloc.dart';
+import 'package:inspecao_campo/features/work_orders/presentation/bloc/inspection_event.dart';
+import 'package:inspecao_campo/features/work_orders/presentation/bloc/inspection_state.dart';
 
 class InspectionFormPage extends StatefulWidget {
   const InspectionFormPage({super.key, required this.workOrder});
