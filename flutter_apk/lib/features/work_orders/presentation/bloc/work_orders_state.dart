@@ -15,11 +15,12 @@ class WorkOrdersLoadingState extends WorkOrdersState {}
 
 class WorkOrdersLoadedState extends WorkOrdersState {
   final List<WorkOrder> orders;
+  final String? offlineWarning;
 
-  const WorkOrdersLoadedState(this.orders);
+  const WorkOrdersLoadedState(this.orders, {this.offlineWarning});
 
   @override
-  List<Object?> get props => [orders];
+  List<Object?> get props => [orders, offlineWarning];
 }
 
 class WorkOrdersErrorState extends WorkOrdersState {

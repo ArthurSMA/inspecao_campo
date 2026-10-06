@@ -136,61 +136,73 @@ class _WorkOrdersPageState extends State<WorkOrdersPage> {
                     ),
                     const DatabaseStatusBanner(),
                     Expanded(
-                      child: RefreshIndicator(
-                        onRefresh: () async {
-                          context.read<WorkOrdersBloc>().add(
-                            FetchWorkOrdersEvent(),
-                          );
+                      child: BlocListener<WorkOrdersBloc, WorkOrdersState>(
+                        listenWhen: (previous, current) =>
+                            current is WorkOrdersLoadedState &&
+                            current.offlineWarning != null,
+                        listener: (context, state) {
+                          if (state is WorkOrdersLoadedState) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text(state.offlineWarning!)),
+                            );
+                          }
                         },
-                        child: state is WorkOrdersLoadingState
-                            ? const Center(child: CircularProgressIndicator())
-                            : state is WorkOrdersErrorState
-                            ? Center(
-                                child: Padding(
-                                  padding: const EdgeInsets.all(24),
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      const Icon(
-                                        Icons.error_outline_rounded,
-                                        color: AppColors.danger,
-                                        size: 40,
-                                      ),
-                                      const SizedBox(height: 12),
-                                      Text(
-                                        state.message,
-                                        textAlign: TextAlign.center,
-                                        style: const TextStyle(
-                                          color: AppColors.darkText,
+                        child: RefreshIndicator(
+                          onRefresh: () => context
+                              .read<WorkOrdersBloc>()
+                              .refreshWorkOrders(),
+                          child: state is WorkOrdersLoadingState
+                              ? const Center(child: CircularProgressIndicator())
+                              : state is WorkOrdersErrorState
+                              ? Center(
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(24),
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Icon(
+                                          Icons.error_outline_rounded,
+                                          color: AppColors.danger,
+                                          size: 40,
                                         ),
-                                      ),
-                                      const SizedBox(height: 12),
-                                      FilledButton.icon(
-                                        onPressed: () => context
-                                            .read<WorkOrdersBloc>()
-                                            .add(FetchWorkOrdersEvent()),
-                                        icon: const Icon(Icons.refresh_rounded),
-                                        label: const Text('Tentar novamente'),
-                                      ),
-                                    ],
+                                        const SizedBox(height: 12),
+                                        Text(
+                                          state.message,
+                                          textAlign: TextAlign.center,
+                                          style: const TextStyle(
+                                            color: AppColors.darkText,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 12),
+                                        FilledButton.icon(
+                                          onPressed: () => context
+                                              .read<WorkOrdersBloc>()
+                                              .add(FetchWorkOrdersEvent()),
+                                          icon: const Icon(
+                                            Icons.refresh_rounded,
+                                          ),
+                                          label: const Text('Tentar novamente'),
+                                        ),
+                                      ],
+                                    ),
                                   ),
+                                )
+                              : loadedOrders.isEmpty
+                              ? const Center(
+                                  child: Text(
+                                    'Nenhuma ordem de serviço encontrada.',
+                                    style: TextStyle(color: AppColors.muted),
+                                  ),
+                                )
+                              : ListView.builder(
+                                  padding: const EdgeInsets.only(bottom: 16),
+                                  itemCount: loadedOrders.length,
+                                  itemBuilder: (context, index) {
+                                    final order = loadedOrders[index];
+                                    return WorkOrderCard(order: order);
+                                  },
                                 ),
-                              )
-                            : loadedOrders.isEmpty
-                            ? const Center(
-                                child: Text(
-                                  'Nenhuma ordem de serviço encontrada.',
-                                  style: TextStyle(color: AppColors.muted),
-                                ),
-                              )
-                            : ListView.builder(
-                                padding: const EdgeInsets.only(bottom: 16),
-                                itemCount: loadedOrders.length,
-                                itemBuilder: (context, index) {
-                                  final order = loadedOrders[index];
-                                  return WorkOrderCard(order: order);
-                                },
-                              ),
+                        ),
                       ),
                     ),
                     WorkOrdersFooter(

@@ -12,9 +12,11 @@ class WorkOrdersBloc extends Bloc<WorkOrdersEvent, WorkOrdersState> {
   final GetWorkOrdersUseCase getWorkOrders;
   final WorkOrdersRepository repository;
   StreamSubscription<List<domain.WorkOrder>>? _subscription;
+  final List<Completer<void>> _refreshCompleters = [];
 
   String _status = 'all';
   String _query = '';
+  String? _offlineWarning;
 
   WorkOrdersBloc(this.getWorkOrders)
     : repository = getWorkOrders.repository,
@@ -35,16 +37,13 @@ class WorkOrdersBloc extends Bloc<WorkOrdersEvent, WorkOrdersState> {
 
     try {
       await repository.syncRemoteOrders();
-    } catch (_) {
       final localOrders = await repository.getWorkOrders();
+      _offlineWarning = null;
       emit(WorkOrdersLoadedState(localOrders));
       await _listenToLocalStream();
-      return;
+    } catch (error) {
+      await _emitOfflineOrError(error, emit);
     }
-
-    final localOrders = await repository.getWorkOrders();
-    emit(WorkOrdersLoadedState(localOrders));
-    await _listenToLocalStream();
   }
 
   Future<void> _onRefreshWorkOrders(
@@ -54,16 +53,53 @@ class WorkOrdersBloc extends Bloc<WorkOrdersEvent, WorkOrdersState> {
     emit(WorkOrdersLoadingState());
     try {
       await repository.syncRemoteOrders();
-    } catch (_) {
       final localOrders = await repository.getWorkOrders();
-      emit(WorkOrdersErrorState('Falha ao sincronizar ordens de serviço'));
+      _offlineWarning = null;
       emit(WorkOrdersLoadedState(localOrders));
-      return;
+      await _listenToLocalStream();
+    } catch (error) {
+      await _emitOfflineOrError(error, emit);
+    } finally {
+      if (_refreshCompleters.isNotEmpty) {
+        final completer = _refreshCompleters.removeAt(0);
+        if (!completer.isCompleted) completer.complete();
+      }
     }
+  }
 
-    final localOrders = await repository.getWorkOrders();
-    emit(WorkOrdersLoadedState(localOrders));
-    await _listenToLocalStream();
+  Future<void> refreshWorkOrders() {
+    final completer = Completer<void>();
+    _refreshCompleters.add(completer);
+    add(RefreshWorkOrdersEvent());
+    return completer.future;
+  }
+
+  Future<void> _emitOfflineOrError(
+    Object error,
+    Emitter<WorkOrdersState> emit,
+  ) async {
+    try {
+      final cachedOrders = await repository.watchWorkOrders().first;
+      final localOrders = await repository
+          .watchWorkOrders(status: _status, query: _query)
+          .first;
+      if (cachedOrders.isEmpty) {
+        _offlineWarning = null;
+        emit(
+          const WorkOrdersErrorState(
+            'Não foi possível carregar as ordens de serviço. Verifique a conexão e tente novamente.',
+          ),
+        );
+        return;
+      }
+
+      _offlineWarning = 'Sem conexão com o servidor. Exibindo ordens salvas neste dispositivo.';
+      emit(WorkOrdersLoadedState(localOrders, offlineWarning: _offlineWarning));
+      await _listenToLocalStream();
+    } catch (_) {
+      _offlineWarning = null;
+      emit(WorkOrdersErrorState(error.toString()));
+    }
   }
 
   Future<void> _onFilterByStatus(
@@ -88,8 +124,8 @@ class WorkOrdersBloc extends Bloc<WorkOrdersEvent, WorkOrdersState> {
         .watchWorkOrders(status: _status, query: _query)
         .listen(
           (orders) => add(WorkOrdersUpdatedEvent(orders)),
-          onError: (_) {
-            add(WorkOrdersUpdatedEvent(const []));
+          onError: (Object error) {
+            addError(error);
           },
         );
   }
@@ -98,7 +134,7 @@ class WorkOrdersBloc extends Bloc<WorkOrdersEvent, WorkOrdersState> {
     WorkOrdersUpdatedEvent event,
     Emitter<WorkOrdersState> emit,
   ) async {
-    emit(WorkOrdersLoadedState(event.orders));
+    emit(WorkOrdersLoadedState(event.orders, offlineWarning: _offlineWarning));
   }
 
   Future<void> _onSaveLocalWorkOrder(
@@ -112,7 +148,6 @@ class WorkOrdersBloc extends Bloc<WorkOrdersEvent, WorkOrdersState> {
       }
     } catch (_) {
       emit(WorkOrdersErrorState('Não foi possível salvar a ordem localmente'));
-      await _listenToLocalStream();
     }
   }
 
