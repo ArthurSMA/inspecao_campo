@@ -20,7 +20,7 @@ import 'package:inspecao_campo/features/work_orders/presentation/bloc/work_order
 import 'package:inspecao_campo/features/work_orders/presentation/bloc/work_orders_state.dart';
 import 'package:inspecao_campo/features/work_orders/presentation/pages/work_orders_page.dart';
 
-import '../../utils/map_work_order_utils.dart';
+import '../../../../core/utils/map_work_order_utils.dart';
 import '../widgets/map_priority_filter.dart';
 import '../widgets/map_work_order_details_sheet.dart';
 import '../widgets/map_work_order_dialog.dart';

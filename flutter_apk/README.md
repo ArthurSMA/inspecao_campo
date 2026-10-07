@@ -26,26 +26,27 @@ flutter run
 ```Plaintext
 lib/
 ├── core/
-│   ├── network/
-|   ├── presentation/
-│   └── utils/
-└── features/
-    ├── auth/
-    │   ├── data/ (repositórios e fontes de dados)
-    │   ├── domain/ (regras de negócio e modelos)
-    │   └── presentation/ (telas e widgets)
-    ├── home/
-    │    ├── data/
-    │    ├── domain/
-    │    └── presentation/
-    ├── map/
-    │    ├── data/
-    │    ├── domain/
-    │    └── presentation/
-    └── work_orders/
-        ├── data/
-        ├── domain/
-        └── presentation/
+│    ├── network/
+│    ├── utils/
+│    └── widgets/
+│
+├── features/
+│   ├── auth/
+|   |    ├── data/
+│   |    ├── domain/
+│   |    └── presentation/
+│   |
+│   ├── home/
+|   |    └── presentation/
+|   |
+│   ├── maps/
+|   |    └── presentation/
+|   |
+│   └── work-orders/
+|          └── presentation/
+|
+└── main.dart
+
 ```
 
 ## Ordens de serviço no mapa

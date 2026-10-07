@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:inspecao_campo/features/map/utils/map_work_order_utils.dart';
+import 'package:inspecao_campo/core/utils/map_work_order_utils.dart';
 import 'package:inspecao_campo/features/work_orders/domain/entities/work_order.dart';
 
 void main() {
