@@ -49,11 +49,11 @@ class _HomePageState extends State<HomePage> {
     super.initState();
     _database = AppDatabase();
     _inspectionRepository = InspectionRepositoryImpl(
-      remoteDataSource: InspectionRemoteDataSourceImpl(DioClient().instance),
+      remoteDataSource: InspectionRemoteDataSourceImpl(ApiClient().instance),
       database: _database,
     );
     _workOrdersRepository = WorkOrdersRepositoryImpl(
-      remoteDataSource: WorkOrdersRemoteDataSourceImpl(DioClient().instance),
+      remoteDataSource: WorkOrdersRemoteDataSourceImpl(ApiClient().instance),
       database: _database,
     );
     _pendingCount = _loadPendingCount();

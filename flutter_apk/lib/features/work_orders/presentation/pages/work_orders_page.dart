@@ -72,7 +72,7 @@ class _WorkOrdersPageState extends State<WorkOrdersPage> {
         GetWorkOrdersUseCase(
           WorkOrdersRepositoryImpl(
             remoteDataSource: WorkOrdersRemoteDataSourceImpl(
-              DioClient().instance,
+              ApiClient().instance,
             ),
             database: AppDatabase(),
           ),

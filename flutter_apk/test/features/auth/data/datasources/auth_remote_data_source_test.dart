@@ -24,7 +24,7 @@ void main() {
         });
 
     final dio = Dio();
-    final client = DioClient(dio: dio);
+    final client = ApiClient(dio: dio);
     RequestOptions? capturedRequest;
     dio.interceptors.add(
       InterceptorsWrapper(

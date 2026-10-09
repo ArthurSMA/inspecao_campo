@@ -17,7 +17,7 @@ abstract interface class AuthRemoteDataSource {
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
-  final DioClient _dioClient;
+  final ApiClient _dioClient;
   final FlutterSecureStorage _secureStorage;
 
   AuthRemoteDataSourceImpl(

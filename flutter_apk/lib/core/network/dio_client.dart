@@ -1,18 +1,19 @@
 import 'package:dio/dio.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-import 'api_config.dart';
 import 'auth_interceptor.dart';
 
-class DioClient {
+class ApiClient {
+  static String get baseUrl => dotenv.get("BASE_URL");
   late final Dio _dio;
 
-  DioClient({Dio? dio}) {
+  ApiClient({Dio? dio}) {
     _dio = dio ?? Dio();
 
     _dio.options = BaseOptions(
-      baseUrl: ApiConfig.baseUrl,
-      connectTimeout: ApiConfig.connectTimeout,
-      receiveTimeout: ApiConfig.receiveTimeout,
+      baseUrl: baseUrl,
+      connectTimeout: const Duration(seconds: 10),
+      receiveTimeout: const Duration(seconds: 10),
       headers: {
         'Content-type': 'application/json',
         'Accept': 'application/json',

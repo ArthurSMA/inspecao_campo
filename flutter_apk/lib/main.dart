@@ -38,7 +38,7 @@ class MyApp extends StatelessWidget {
           create: (context) => AuthBloc(
             repository: AuthRepositoryImpl(
               AuthRemoteDataSourceImpl(
-                DioClient(),
+                ApiClient(),
                 secureStorage: const FlutterSecureStorage(),
               ),
             ),
@@ -48,7 +48,7 @@ class MyApp extends StatelessWidget {
           create: (context) => InspectionBloc(
             InspectionRepositoryImpl(
               remoteDataSource: InspectionRemoteDataSourceImpl(
-                DioClient().instance,
+                ApiClient().instance,
               ),
               database: AppDatabase(),
             ),
