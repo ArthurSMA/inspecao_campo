@@ -1,10 +1,9 @@
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:inspecao_campo/app/app.dart';
 import 'package:inspecao_campo/features/home/presentation/pages/home_page.dart';
-import 'package:inspecao_campo/main.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -20,7 +19,7 @@ void main() {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(secureStorageChannel, (call) async => null);
 
-    await tester.pumpWidget(const MyApp());
+    await tester.pumpWidget(const App());
     await tester.pumpAndSettle();
 
     expect(find.text('Bem-vindo de volta!'), findsOneWidget);
@@ -41,7 +40,7 @@ void main() {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(secureStorageChannel, (call) async => null);
 
-    await tester.pumpWidget(const MyApp());
+    await tester.pumpWidget(const App());
     await tester.pumpAndSettle();
 
     Navigator.of(tester.element(find.text('Entrar'))).pushNamed('/home');
