@@ -1,42 +1,41 @@
 import 'dart:async';
 
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:inspecao_campo/core/connectivity/internet_connection_service.dart';
 import 'package:inspecao_campo/features/work_orders/data/database/work_orders_database.dart';
 import 'package:inspecao_campo/features/work_orders/data/datasources/inspection_remote_data_source.dart';
 import 'package:inspecao_campo/features/work_orders/data/models/inspection_model.dart';
 import 'package:inspecao_campo/features/work_orders/data/repositories/inspection_repository_impl.dart';
-import 'package:inspecao_campo/features/work_orders/data/services/network_connectivity_service.dart';
 import 'package:inspecao_campo/features/work_orders/domain/entities/inspection.dart';
 
 void main() {
   late AppDatabase database;
   late _FakeInspectionRemoteDataSource remoteDataSource;
-  late _FakeConnectivityService connectivityService;
+  late _FakeInternetConnectionService internetConnectionService;
   late InspectionRepositoryImpl repository;
 
   setUp(() {
     database = AppDatabase(NativeDatabase.memory());
     remoteDataSource = _FakeInspectionRemoteDataSource();
-    connectivityService = _FakeConnectivityService();
+    internetConnectionService = _FakeInternetConnectionService();
     repository = InspectionRepositoryImpl(
       remoteDataSource: remoteDataSource,
       database: database,
-      connectivityService: connectivityService,
+      internetConnectionService: internetConnectionService,
     );
   });
 
   tearDown(() async {
     await database.close();
-    await connectivityService.controller.close();
+    await internetConnectionService.controller.close();
   });
 
   test(
     'atomically queues and marks a successfully uploaded inspection',
     () async {
-      connectivityService.connected = true;
+      internetConnectionService.connected = true;
       await repository.savePending(_inspection('client-1'));
 
       await repository.syncPendingInspections();
@@ -50,7 +49,7 @@ void main() {
   );
 
   test('does not queue or upload draft inspections', () async {
-    connectivityService.connected = true;
+    internetConnectionService.connected = true;
     await repository.saveDraft(_inspection('client-draft'));
 
     await repository.syncPendingInspections();
@@ -64,7 +63,7 @@ void main() {
   test(
     'keeps failed inspection queued with its error for a later retry',
     () async {
-      connectivityService.connected = true;
+      internetConnectionService.connected = true;
       final requestOptions = RequestOptions(path: '/inspections');
       remoteDataSource.error = DioException(
         requestOptions: requestOptions,
@@ -109,7 +108,7 @@ void main() {
       expect(remoteDataSource.submittedClientIds, isEmpty);
       expect((await database.getQueuedInspections()).length, 2);
 
-      connectivityService.connected = true;
+      internetConnectionService.connected = true;
       await repository.syncPendingInspections();
 
       expect(remoteDataSource.submittedClientIds, ['client-a', 'client-b']);
@@ -166,14 +165,13 @@ class _FakeInspectionRemoteDataSource implements InspectionRemoteDataSource {
   }
 }
 
-class _FakeConnectivityService implements NetworkConnectivityService {
-  final StreamController<List<ConnectivityResult>> controller =
-      StreamController<List<ConnectivityResult>>.broadcast();
+class _FakeInternetConnectionService implements InternetConnectionService {
+  final StreamController<bool> controller = StreamController<bool>.broadcast();
   bool connected = false;
 
   @override
-  Stream<List<ConnectivityResult>> get changes => controller.stream;
+  Stream<bool> get status => controller.stream;
 
   @override
-  Future<bool> get isConnected async => connected;
+  Future<bool> get hasInternetAccess async => connected;
 }

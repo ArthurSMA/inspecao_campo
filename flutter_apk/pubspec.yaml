@@ -27,7 +27,8 @@ dependencies:
   path: ^1.9.1
   path_provider: ^2.1.5
   image_picker: ^1.2.3
-  connectivity_plus: ^7.3.2
+  internet_connection_checker_plus: ^3.1.2
+  auto_route: ^11.2.0
 
 dev_dependencies:
   flutter_test:
@@ -36,6 +37,7 @@ dev_dependencies:
   flutter_lints: ^6.0.0
   drift_dev: ^2.20.1
   build_runner: ^2.4.13
+  auto_route_generator: ^10.6.0
 
 flutter:
 
@@ -55,4 +57,3 @@ flutter:
   #       - asset: fonts/TrajanPro.ttf
   #       - asset: fonts/TrajanPro_Bold.ttf
   #         weight: 700
-

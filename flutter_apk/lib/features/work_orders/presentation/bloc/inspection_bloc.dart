@@ -1,22 +1,23 @@
 import 'dart:async';
 
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:inspecao_campo/core/connectivity/internet_connection_service.dart';
+import 'package:inspecao_campo/core/connectivity/internet_connection_service_impl.dart';
 
-import '../../data/services/network_connectivity_service.dart';
 import '../../domain/entities/inspection.dart';
 import '../../domain/repositories/inspection_repository.dart';
 import '../../domain/usecases/process_sync_queue.dart';
 import '../../domain/usecases/retry_failed_sync.dart';
+
 import 'inspection_event.dart';
 import 'inspection_state.dart';
 
 class InspectionBloc extends Bloc<InspectionEvent, InspectionState> {
   InspectionBloc(
     this._repository, {
-    NetworkConnectivityService? connectivityService,
-  }) : _connectivityService =
-           connectivityService ?? NetworkConnectivityServiceImpl(),
+    InternetConnectionService? internetConnectionService,
+  }) : _internetConnectionService =
+           internetConnectionService ?? InternetConnectionServiceImpl(),
        _processSyncQueue = ProcessSyncQueueUseCase(_repository),
        _retryFailedSync = RetryFailedSyncUseCase(_repository),
        super(InspectionInitialState()) {
@@ -33,8 +34,8 @@ class InspectionBloc extends Bloc<InspectionEvent, InspectionState> {
     on<MarkInspectionPendingEvent>(_onMarkInspectionPending);
     on<SyncPendingInspectionsEvent>(_onSyncPendingInspections);
     on<RetryInspectionEvent>(_onRetryInspection);
-    _connectivitySubscription = _connectivityService.changes.listen(
-      _onConnectivityChanged,
+    _internetStatusSubscription = _internetConnectionService.status.listen(
+      _onInternetStatusChanged,
       onError: (Object error) =>
           add(ConnectivityMonitoringErrorEvent(error.toString())),
     );
@@ -43,16 +44,13 @@ class InspectionBloc extends Bloc<InspectionEvent, InspectionState> {
   final InspectionRepository _repository;
   final ProcessSyncQueueUseCase _processSyncQueue;
   final RetryFailedSyncUseCase _retryFailedSync;
-  final NetworkConnectivityService _connectivityService;
-  StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
+  final InternetConnectionService _internetConnectionService;
+  StreamSubscription<bool>? _internetStatusSubscription;
   StreamSubscription<List<Inspection>>? _historySubscription;
   String _historyStatus = 'all';
   bool _wasConnected = false;
 
-  void _onConnectivityChanged(List<ConnectivityResult> results) {
-    final isConnected = results.any(
-      (result) => result != ConnectivityResult.none,
-    );
+  void _onInternetStatusChanged(bool isConnected) {
     if (isConnected && !_wasConnected) {
       add(SyncPendingInspectionsEvent());
     }
@@ -170,7 +168,7 @@ class InspectionBloc extends Bloc<InspectionEvent, InspectionState> {
 
   @override
   Future<void> close() async {
-    await _connectivitySubscription?.cancel();
+    await _internetStatusSubscription?.cancel();
     await _historySubscription?.cancel();
     return super.close();
   }

@@ -1,3 +1,4 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -21,6 +22,7 @@ import '../widgets/work_orders_filter_chips.dart';
 import '../widgets/work_orders_footer.dart';
 import '../widgets/work_orders_search_bar.dart';
 
+@RoutePage()
 class WorkOrdersPage extends StatefulWidget {
   const WorkOrdersPage({super.key});
 

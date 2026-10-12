@@ -1,3 +1,4 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -10,8 +11,11 @@ import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
 import '../bloc/auth_state.dart';
 
+@RoutePage()
 class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+  const LoginPage({super.key, this.onResult});
+
+  final void Function(bool success)? onResult;
 
   @override
   State<LoginPage> createState() => _LoginPageState();
@@ -66,9 +70,6 @@ class _LoginPageState extends State<LoginPage> {
                 message: 'Sessão autenticada.',
                 backgroundColor: Colors.green,
               );
-
-              Navigator.of(context)
-                  .pushNamedAndRemoveUntil('/home', (_) => false);
             }
 
             if (state is AuthErrorState) {

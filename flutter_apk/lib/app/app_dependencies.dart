@@ -1,4 +1,5 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:inspecao_campo/core/connectivity/internet_connection_service_impl.dart';
 
 import '../core/network/dio_client.dart';
 import '../features/auth/data/datasources/auth_remote_data_source.dart';
@@ -39,16 +40,21 @@ class AppDependenciesFactory {
     final apiClient = ApiClient();
     final database = AppDatabase();
 
+    final internetConnectionService = InternetConnectionServiceImpl();
+
     final authRepository = AuthRepositoryImpl(
       AuthRemoteDataSourceImpl(
         apiClient,
         secureStorage: const FlutterSecureStorage(),
       ),
     );
+
     final inspectionRepository = InspectionRepositoryImpl(
       remoteDataSource: InspectionRemoteDataSourceImpl(apiClient.instance),
       database: database,
+      internetConnectionService: internetConnectionService,
     );
+
     final workOrdersRepository = WorkOrdersRepositoryImpl(
       remoteDataSource: WorkOrdersRemoteDataSourceImpl(apiClient.instance),
       database: database,
@@ -56,7 +62,12 @@ class AppDependenciesFactory {
 
     final authBloc = AuthBloc(repository: authRepository)
       ..add(CheckAuthSessionEvent());
-    final inspectionBloc = InspectionBloc(inspectionRepository);
+
+    final inspectionBloc = InspectionBloc(
+      inspectionRepository,
+      internetConnectionService: internetConnectionService,
+    );
+
     final workOrdersBloc = WorkOrdersBloc(
       GetWorkOrdersUseCase(workOrdersRepository),
     );

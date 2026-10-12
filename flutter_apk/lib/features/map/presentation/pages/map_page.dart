@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -19,13 +20,14 @@ import 'package:inspecao_campo/features/work_orders/presentation/bloc/work_order
 import 'package:inspecao_campo/features/work_orders/presentation/bloc/work_orders_event.dart';
 import 'package:inspecao_campo/features/work_orders/presentation/bloc/work_orders_state.dart';
 import 'package:inspecao_campo/features/work_orders/presentation/pages/work_orders_page.dart';
+import 'package:inspecao_campo/core/utils/map_work_order_utils.dart';
 
-import '../../../../core/utils/map_work_order_utils.dart';
 import '../widgets/map_priority_filter.dart';
 import '../widgets/map_work_order_details_sheet.dart';
 import '../widgets/map_work_order_dialog.dart';
 import '../widgets/work_orders_map_view.dart';
 
+@RoutePage()
 class MapPage extends StatefulWidget {
   const MapPage({super.key, this.osrmService});
 

@@ -1,24 +1,24 @@
 import 'package:dio/dio.dart';
+import 'package:inspecao_campo/core/connectivity/internet_connection_service.dart';
+import 'package:inspecao_campo/core/connectivity/internet_connection_service_impl.dart';
 
 import '../../domain/entities/inspection.dart';
 import '../../domain/repositories/inspection_repository.dart';
 import '../database/work_orders_database.dart';
 import '../datasources/inspection_remote_data_source.dart';
 import '../models/inspection_model.dart';
-import '../services/network_connectivity_service.dart';
 
 class InspectionRepositoryImpl implements InspectionRepository {
   InspectionRepositoryImpl({
     required this.remoteDataSource,
-    AppDatabase? database,
-    NetworkConnectivityService? connectivityService,
-  }) : database = database ?? AppDatabase(),
-       connectivityService =
-           connectivityService ?? NetworkConnectivityServiceImpl();
+    required this.database,
+    InternetConnectionService? internetConnectionService,
+  }) : internetConnectionService =
+           internetConnectionService ?? InternetConnectionServiceImpl();
 
   final InspectionRemoteDataSource remoteDataSource;
   final AppDatabase database;
-  final NetworkConnectivityService connectivityService;
+  final InternetConnectionService internetConnectionService;
   Future<void>? _activeSync;
 
   @override
@@ -73,7 +73,7 @@ class InspectionRepositoryImpl implements InspectionRepository {
   }
 
   Future<void> _processSyncQueue() async {
-    if (!await connectivityService.isConnected) {
+    if (!await internetConnectionService.hasInternetAccess) {
       return;
     }
 

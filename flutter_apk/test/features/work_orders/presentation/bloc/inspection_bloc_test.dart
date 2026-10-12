@@ -1,40 +1,41 @@
 import 'dart:async';
 
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:inspecao_campo/features/work_orders/data/services/network_connectivity_service.dart';
+import 'package:inspecao_campo/core/connectivity/internet_connection_service.dart';
 import 'package:inspecao_campo/features/work_orders/domain/entities/inspection.dart';
 import 'package:inspecao_campo/features/work_orders/domain/repositories/inspection_repository.dart';
 import 'package:inspecao_campo/features/work_orders/presentation/bloc/inspection_bloc.dart';
 
 void main() {
   test('syncs pending inspections when connectivity is restored', () async {
-    final connectivity = _FakeConnectivityService();
+    final internetConnection = _FakeInternetConnectionService();
     final repository = _FakeInspectionRepository();
-    final bloc = InspectionBloc(repository, connectivityService: connectivity);
+    final bloc = InspectionBloc(
+      repository,
+      internetConnectionService: internetConnection,
+    );
     addTearDown(() async {
       await bloc.close();
-      await connectivity.controller.close();
+      await internetConnection.controller.close();
     });
 
-    connectivity.controller.add([ConnectivityResult.none]);
+    internetConnection.controller.add(false);
     await Future<void>.delayed(Duration.zero);
-    connectivity.controller.add([ConnectivityResult.wifi]);
+    internetConnection.controller.add(true);
 
     await repository.syncCalled.future.timeout(const Duration(seconds: 1));
     expect(repository.syncCalls, 1);
   });
 }
 
-class _FakeConnectivityService implements NetworkConnectivityService {
-  final StreamController<List<ConnectivityResult>> controller =
-      StreamController<List<ConnectivityResult>>.broadcast();
+class _FakeInternetConnectionService implements InternetConnectionService {
+  final StreamController<bool> controller = StreamController<bool>.broadcast();
 
   @override
-  Stream<List<ConnectivityResult>> get changes => controller.stream;
+  Stream<bool> get status => controller.stream;
 
   @override
-  Future<bool> get isConnected async => false;
+  Future<bool> get hasInternetAccess async => false;
 }
 
 class _FakeInspectionRepository implements InspectionRepository {
