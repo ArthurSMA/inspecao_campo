@@ -25,28 +25,34 @@ flutter run
 
 ```Plaintext
 lib/
+├── main.dart
+├── app/
+│   ├── app.dart
+│   ├── app_dependencies.dart
+│   └── router/
+│       ├── app_router.dart
+│       ├── app_router.gr.dart
+│       ├── app_shell_page.dart
+│       ├── auth_guard.dart
+│       └── not_found_page.dart
 ├── core/
-│    ├── network/
-│    ├── utils/
-│    └── widgets/
-│
-├── features/
-│   ├── auth/
-|   |    ├── data/
-│   |    ├── domain/
-│   |    └── presentation/
-│   |
-│   ├── home/
-|   |    └── presentation/
-|   |
-│   ├── maps/
-|   |    └── presentation/
-|   |
-│   └── work-orders/
-|          └── presentation/
-|
-└── main.dart
-
+│   ├── connectivity/
+│   ├── network/
+│   ├── presentation/widgets/
+│   └── utils/
+└── features/
+    ├── auth/
+    │   ├── data/
+    │   ├── domain/
+    │   └── presentation/
+    ├── home/
+    │   └── presentation/
+    ├── map/
+    │   └── presentation/
+    └── work_orders/
+        ├── data/
+        ├── domain/
+        └── presentation/
 ```
 
 ## Ordens de serviço no mapa
